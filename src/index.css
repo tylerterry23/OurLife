@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* OurLife brand tokens — raw values, used directly (not through hsl()) */
+    --ink: #0f0d12;
+    --ink-raised: #17141b;
+    --parchment: #efe7dd;
+    --parchment-dim: #b8afa3;
+    --wine: #8a3b54;
+    --wine-bright: #c15a78;
+    --gold: #c9a667;
+    --line: rgba(239, 231, 221, 0.12);
+
+    /* shadcn/ui semantic slots, re-themed from the tokens above (HSL triplets,
+       consumed as hsl(var(--x)) so shadcn components stay untouched) */
+    --background: 264 16% 6%; /* ink */
+    --foreground: 33 36% 90%; /* parchment */
+
+    --card: 266 15% 9%; /* ink-raised */
+    --card-foreground: 33 36% 90%; /* parchment */
+
+    --popover: 266 15% 9%; /* ink-raised */
+    --popover-foreground: 33 36% 90%; /* parchment */
+
+    --primary: 341 40% 39%; /* wine */
+    --primary-foreground: 33 36% 90%; /* parchment */
+
+    --secondary: 266 15% 9%; /* ink-raised */
+    --secondary-foreground: 33 36% 90%; /* parchment */
+
+    --muted: 266 15% 9%; /* ink-raised */
+    --muted-foreground: 34 13% 68%; /* parchment-dim */
+
+    --accent: 39 48% 60%; /* gold */
+    --accent-foreground: 264 16% 6%; /* ink */
+
+    --destructive: 0 63% 41%;
+    --destructive-foreground: 33 36% 90%; /* parchment */
+
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 343 45% 55%; /* wine-bright */
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
