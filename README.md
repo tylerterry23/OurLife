@@ -27,13 +27,41 @@ on the backend. Installable as a PWA.
 
 ```bash
 npm install
-cp .env.example .env.development   # then fill in real Supabase values
 npm run dev
 ```
 
-Without real Supabase credentials, the app throws a clear startup error
-("Missing Supabase environment variables...") instead of failing silently —
-that's expected until the project below is connected.
+No Supabase project is required to run this. That's on purpose — this init
+is a frontend visual proof of concept, wired so a real backend can be
+dropped in later without touching the UI.
+
+## Demo mode
+
+Without `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` set, the app runs
+against a local data layer instead of erroring out:
+
+- `src/lib/supabaseClient.ts` exports `isSupabaseConfigured` (false when
+  those env vars are missing)
+- every feature's `api/*.ts` checks that flag and, when false, reads/writes
+  a small localStorage-backed collection (`src/lib/demoStore.ts`) seeded
+  with a couple of example rows instead of calling Supabase
+- `authStore` auto-signs-in a fake demo user in `initSession()` so the app
+  is browsable immediately — no login wall. Logging out drops back to the
+  login screen, which accepts any email/password while in demo mode
+- a "Demo mode" badge shows in the top bar and on the login screen so it's
+  never ambiguous which mode you're in
+
+This means the whole app — all six module screens, full add/edit/delete —
+works standalone (including on a fresh Vercel deploy with zero env vars
+set). Data lives in the browser's localStorage and isn't shared between
+devices or wiped between visits until you clear site data.
+
+**Wiring up the real backend later requires no rewrites** — just create the
+Supabase project (see below), set the two env vars, and every `api/*.ts`
+function automatically switches from the demo collection to the real
+`supabase.from(...)` call it already contains. Copy `.env.example` to
+`.env.development` and fill in real values to do this locally; add the same
+two variables in Vercel's Environment Variables settings to do it in
+production.
 
 ## Backend
 

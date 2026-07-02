@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabaseClient'
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
+import { createDemoCollection } from '@/lib/demoStore'
 import type { Database } from '@/types/supabase'
 import type { ImportantDate } from '../types'
 
@@ -31,7 +32,24 @@ function toUpdate(payload: Partial<ImportantDate>): DateUpdate {
   return update
 }
 
+const demoDates = createDemoCollection<ImportantDate>('important_dates', [
+  {
+    id: crypto.randomUUID(),
+    label: 'Anniversary',
+    date: '2025-09-12',
+    recurring: true,
+  },
+  {
+    id: crypto.randomUUID(),
+    label: "Lauren's birthday",
+    date: '2025-11-03',
+    recurring: true,
+  },
+])
+
 export async function getDates(): Promise<ImportantDate[]> {
+  if (!isSupabaseConfigured) return demoDates.list()
+
   const { data, error } = await supabase
     .from('important_dates')
     .select('*')
@@ -41,6 +59,12 @@ export async function getDates(): Promise<ImportantDate[]> {
 }
 
 export async function getDate(id: string): Promise<ImportantDate> {
+  if (!isSupabaseConfigured) {
+    const date = demoDates.get(id)
+    if (!date) throw new Error(`Date "${id}" not found`)
+    return date
+  }
+
   const { data, error } = await supabase
     .from('important_dates')
     .select('*')
@@ -53,6 +77,10 @@ export async function getDate(id: string): Promise<ImportantDate> {
 export async function createDate(
   payload: Omit<ImportantDate, 'id'>
 ): Promise<ImportantDate> {
+  if (!isSupabaseConfigured) {
+    return demoDates.insert({ ...payload, id: crypto.randomUUID() })
+  }
+
   const { data, error } = await supabase
     .from('important_dates')
     .insert(toInsert(payload))
@@ -66,6 +94,8 @@ export async function updateDate(
   id: string,
   payload: Partial<ImportantDate>
 ): Promise<ImportantDate> {
+  if (!isSupabaseConfigured) return demoDates.update(id, payload)
+
   const { data, error } = await supabase
     .from('important_dates')
     .update(toUpdate(payload))
@@ -77,6 +107,11 @@ export async function updateDate(
 }
 
 export async function deleteDate(id: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    demoDates.remove(id)
+    return
+  }
+
   const { error } = await supabase.from('important_dates').delete().eq('id', id)
   if (error) throw error
 }

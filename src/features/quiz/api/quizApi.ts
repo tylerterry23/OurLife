@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabaseClient'
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
+import { createDemoCollection } from '@/lib/demoStore'
 import type { Database } from '@/types/supabase'
 import type { QuizQuestion } from '../types'
 
@@ -35,7 +36,28 @@ function toUpdate(payload: Partial<QuizQuestion>): QuizUpdate {
   return update
 }
 
+const demoQuestions = createDemoCollection<QuizQuestion>('quiz_questions', [
+  {
+    id: crypto.randomUUID(),
+    askedBy: 'Tyler',
+    question: "What's a small thing I do that makes your day better?",
+    answer: "Making coffee before I'm even out of bed.",
+    answeredAt: new Date('2025-05-10T00:00:00Z').toISOString(),
+    createdAt: new Date('2025-05-09T00:00:00Z').toISOString(),
+  },
+  {
+    id: crypto.randomUUID(),
+    askedBy: 'Lauren',
+    question: 'What trip are you most excited to plan next?',
+    answer: null,
+    answeredAt: null,
+    createdAt: new Date('2025-06-15T00:00:00Z').toISOString(),
+  },
+])
+
 export async function getQuizQuestions(): Promise<QuizQuestion[]> {
+  if (!isSupabaseConfigured) return demoQuestions.list()
+
   const { data, error } = await supabase
     .from('quiz_questions')
     .select('*')
@@ -45,6 +67,12 @@ export async function getQuizQuestions(): Promise<QuizQuestion[]> {
 }
 
 export async function getQuizQuestion(id: string): Promise<QuizQuestion> {
+  if (!isSupabaseConfigured) {
+    const question = demoQuestions.get(id)
+    if (!question) throw new Error(`Question "${id}" not found`)
+    return question
+  }
+
   const { data, error } = await supabase
     .from('quiz_questions')
     .select('*')
@@ -57,6 +85,14 @@ export async function getQuizQuestion(id: string): Promise<QuizQuestion> {
 export async function createQuizQuestion(
   payload: Omit<QuizQuestion, 'id' | 'createdAt'>
 ): Promise<QuizQuestion> {
+  if (!isSupabaseConfigured) {
+    return demoQuestions.insert({
+      ...payload,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    })
+  }
+
   const { data, error } = await supabase
     .from('quiz_questions')
     .insert(toInsert(payload))
@@ -70,6 +106,8 @@ export async function updateQuizQuestion(
   id: string,
   payload: Partial<QuizQuestion>
 ): Promise<QuizQuestion> {
+  if (!isSupabaseConfigured) return demoQuestions.update(id, payload)
+
   const { data, error } = await supabase
     .from('quiz_questions')
     .update(toUpdate(payload))
@@ -81,6 +119,11 @@ export async function updateQuizQuestion(
 }
 
 export async function deleteQuizQuestion(id: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    demoQuestions.remove(id)
+    return
+  }
+
   const { error } = await supabase.from('quiz_questions').delete().eq('id', id)
   if (error) throw error
 }

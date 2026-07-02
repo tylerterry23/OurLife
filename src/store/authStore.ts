@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { supabase } from '@/lib/supabaseClient'
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import type { User } from '@supabase/supabase-js'
 
 interface AuthState {
@@ -11,12 +11,30 @@ interface AuthState {
   initSession: () => Promise<void>
 }
 
+// Stands in for a real Supabase User while no project is connected — just
+// enough shape to satisfy the type. Login accepts anything in demo mode.
+function createDemoUser(email: string): User {
+  return {
+    id: 'demo-user',
+    app_metadata: {},
+    user_metadata: {},
+    aud: 'authenticated',
+    email,
+    created_at: new Date().toISOString(),
+  }
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
       isLoading: true,
       login: async (email, password) => {
+        if (!isSupabaseConfigured) {
+          set({ user: createDemoUser(email || 'demo@ourlife.app') })
+          return
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -25,10 +43,22 @@ export const useAuthStore = create<AuthState>()(
         set({ user: data.user })
       },
       logout: async () => {
+        if (!isSupabaseConfigured) {
+          set({ user: null })
+          return
+        }
+
         await supabase.auth.signOut()
         set({ user: null })
       },
       initSession: async () => {
+        if (!isSupabaseConfigured) {
+          // Auto-sign-in so the app is browsable as a standalone demo —
+          // logging out still drops back to a working (demo) login screen.
+          set({ user: createDemoUser('demo@ourlife.app'), isLoading: false })
+          return
+        }
+
         const { data } = await supabase.auth.getSession()
         set({ user: data.session?.user ?? null, isLoading: false })
       },
@@ -37,6 +67,8 @@ export const useAuthStore = create<AuthState>()(
   )
 )
 
-supabase.auth.onAuthStateChange((_event, session) => {
-  useAuthStore.setState({ user: session?.user ?? null })
-})
+if (isSupabaseConfigured) {
+  supabase.auth.onAuthStateChange((_event, session) => {
+    useAuthStore.setState({ user: session?.user ?? null })
+  })
+}

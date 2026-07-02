@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { isSupabaseConfigured } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
 
 export function LoginRoute() {
@@ -40,6 +41,12 @@ export function LoginRoute() {
           <p className="mt-1 text-sm text-muted-foreground">
             Sign in to continue
           </p>
+          {!isSupabaseConfigured && (
+            <p className="mt-3 text-xs text-gold">
+              Demo mode — no Supabase project connected yet. Any email &amp;
+              password will do.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

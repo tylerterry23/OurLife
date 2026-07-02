@@ -1,7 +1,9 @@
 import { Outlet } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { isSupabaseConfigured } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
 import { BottomNav } from './BottomNav'
 
@@ -12,9 +14,16 @@ export function AppShell() {
     <div className="flex min-h-svh flex-col bg-ink text-foreground">
       <header className="sticky top-0 z-30 border-b border-line bg-ink/95 backdrop-blur supports-[backdrop-filter]:bg-ink/80">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-          <span className="font-display text-2xl italic tracking-wide text-parchment">
-            OurLife
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-display text-2xl italic tracking-wide text-parchment">
+              OurLife
+            </span>
+            {!isSupabaseConfigured && (
+              <Badge variant="outline" className="text-[10px]">
+                Demo mode
+              </Badge>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="icon"

@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabaseClient'
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
+import { createDemoCollection } from '@/lib/demoStore'
 import type { Database } from '@/types/supabase'
 import type { Place } from '../types'
 
@@ -35,7 +36,28 @@ function toUpdate(payload: Partial<Place>): PlaceUpdate {
   return update
 }
 
+const demoPlaces = createDemoCollection<Place>('places', [
+  {
+    id: crypto.randomUUID(),
+    name: 'Kyoto',
+    status: 'visited',
+    city: 'Kyoto, Japan',
+    notes: 'Cherry blossoms were just starting to bloom.',
+    createdAt: new Date('2025-04-05T00:00:00Z').toISOString(),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: 'Iceland ring road',
+    status: 'planned',
+    city: 'Iceland',
+    notes: 'Aim for the northern lights season.',
+    createdAt: new Date('2025-06-01T00:00:00Z').toISOString(),
+  },
+])
+
 export async function getPlaces(): Promise<Place[]> {
+  if (!isSupabaseConfigured) return demoPlaces.list()
+
   const { data, error } = await supabase
     .from('places')
     .select('*')
@@ -45,6 +67,12 @@ export async function getPlaces(): Promise<Place[]> {
 }
 
 export async function getPlace(id: string): Promise<Place> {
+  if (!isSupabaseConfigured) {
+    const place = demoPlaces.get(id)
+    if (!place) throw new Error(`Place "${id}" not found`)
+    return place
+  }
+
   const { data, error } = await supabase
     .from('places')
     .select('*')
@@ -57,6 +85,14 @@ export async function getPlace(id: string): Promise<Place> {
 export async function createPlace(
   payload: Omit<Place, 'id' | 'createdAt'>
 ): Promise<Place> {
+  if (!isSupabaseConfigured) {
+    return demoPlaces.insert({
+      ...payload,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    })
+  }
+
   const { data, error } = await supabase
     .from('places')
     .insert(toInsert(payload))
@@ -70,6 +106,8 @@ export async function updatePlace(
   id: string,
   payload: Partial<Place>
 ): Promise<Place> {
+  if (!isSupabaseConfigured) return demoPlaces.update(id, payload)
+
   const { data, error } = await supabase
     .from('places')
     .update(toUpdate(payload))
@@ -81,6 +119,11 @@ export async function updatePlace(
 }
 
 export async function deletePlace(id: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    demoPlaces.remove(id)
+    return
+  }
+
   const { error } = await supabase.from('places').delete().eq('id', id)
   if (error) throw error
 }
