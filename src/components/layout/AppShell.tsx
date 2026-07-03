@@ -1,48 +1,26 @@
-import { Link, Outlet } from 'react-router-dom'
-import { LogOut, Settings } from 'lucide-react'
+import { Outlet } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { isSupabaseConfigured } from '@/lib/supabaseClient'
-import { useAuthStore } from '@/store/authStore'
 import { BottomNav } from './BottomNav'
 
 export function AppShell() {
-  const logout = useAuthStore((state) => state.logout)
-
   return (
     <div className="flex min-h-svh flex-col bg-ink text-foreground">
       <header className="sticky top-0 z-30 border-b border-line bg-ink/95 backdrop-blur supports-[backdrop-filter]:bg-ink/80">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="font-display text-2xl italic tracking-wide text-parchment">
-              OurLife
-            </span>
-            {!isSupabaseConfigured && (
-              <Badge variant="outline" className="text-[10px]">
-                Demo mode
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" aria-label="Settings" asChild>
-              <Link to="/settings">
-                <Settings className="h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Log out"
-              onClick={() => logout()}
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
+          <span className="font-display text-2xl italic tracking-wide text-parchment">
+            OurLife
+          </span>
+          {!isSupabaseConfigured && (
+            <Badge variant="outline" className="text-[10px]">
+              Demo mode
+            </Badge>
+          )}
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-6">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6">
         <Outlet />
       </main>
 

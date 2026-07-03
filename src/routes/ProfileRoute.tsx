@@ -1,14 +1,16 @@
 import { useState, type FormEvent } from 'react'
-import { Palette } from 'lucide-react'
+import { LogOut, Palette } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
 
-export function SettingsRoute() {
+export function ProfileRoute() {
+  const { user, logout } = useAuthStore()
   const { displayNames, setDisplayNames } = useSettingsStore()
   const [partner1, setPartner1] = useState(displayNames.partner1)
   const [partner2, setPartner2] = useState(displayNames.partner2)
@@ -25,18 +27,34 @@ export function SettingsRoute() {
   return (
     <div className="space-y-6">
       <h1 className="font-display text-3xl font-medium text-parchment">
-        Settings
+        Profile
       </h1>
 
       <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-xl">Account</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Signed in as{' '}
+            <span className="text-parchment">{user?.email ?? 'unknown'}</span>
+          </p>
+          <Button variant="outline" onClick={() => logout()} className="gap-2">
+            <LogOut className="h-4 w-4" />
+            Log out
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Names</CardTitle>
+          <CardTitle className="text-xl">Display names</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="partner1">Your name</Label>
+                <Label htmlFor="partner1">Partner A</Label>
                 <Input
                   id="partner1"
                   value={partner1}
@@ -45,7 +63,7 @@ export function SettingsRoute() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="partner2">Partner's name</Label>
+                <Label htmlFor="partner2">Partner B</Label>
                 <Input
                   id="partner2"
                   value={partner2}
