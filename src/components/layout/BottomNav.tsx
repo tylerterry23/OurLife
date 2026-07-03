@@ -11,7 +11,7 @@ const navItems = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
       <ul className="flex items-center gap-1 rounded-full border border-line bg-ink-raised/90 p-1.5 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-ink-raised/75">
         {navItems.map(({ to, label, icon: Icon, end }) => (
           <li key={to}>

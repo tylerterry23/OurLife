@@ -13,6 +13,7 @@ import { PlacesRoute } from '@/routes/PlacesRoute'
 import { ProfileRoute } from '@/routes/ProfileRoute'
 import { QuizRoute } from '@/routes/QuizRoute'
 import { RatingsRoute } from '@/routes/RatingsRoute'
+import { SettingsRoute } from '@/routes/SettingsRoute'
 import { WishlistRoute } from '@/routes/WishlistRoute'
 
 const queryClient = new QueryClient()
@@ -57,6 +58,7 @@ function App() {
             <Route path="/wishlist" element={<WishlistRoute />} />
             <Route path="/games" element={<GamesRoute />} />
             <Route path="/profile" element={<ProfileRoute />} />
+            <Route path="/settings" element={<SettingsRoute />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
