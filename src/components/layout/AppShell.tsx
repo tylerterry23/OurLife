@@ -1,5 +1,5 @@
-import { Outlet } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { Link, Outlet } from 'react-router-dom'
+import { LogOut, Settings } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -24,18 +24,25 @@ export function AppShell() {
               </Badge>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Log out"
-            onClick={() => logout()}
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" aria-label="Settings" asChild>
+              <Link to="/settings">
+                <Settings className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Log out"
+              onClick={() => logout()}
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-24 pt-6">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-6">
         <Outlet />
       </main>
 
