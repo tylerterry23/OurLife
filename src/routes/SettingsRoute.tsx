@@ -1,8 +1,7 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Bell,
-  Check,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -10,7 +9,6 @@ import {
   Trash2,
   UserPlus,
   UserX,
-  X,
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -26,16 +24,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { QrCode } from '@/components/QrCode'
 import { isSupabaseConfigured } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
 import {
-  useAcceptInvite,
   useCoupleStatus,
-  useDeclineInvite,
-  useInvitePartner,
   useLeaveCouple,
-  useMyInvites,
 } from '@/features/couple/hooks/useCouple'
 import {
   useCoupleProfiles,
@@ -91,21 +84,14 @@ export function SettingsRoute() {
   const { data: coupleProfiles } = useCoupleProfiles()
   const partnerLabel = profileLabel(coupleProfiles?.partner, 'your partner')
   const { data: coupleStatus } = useCoupleStatus()
-  const { data: invites } = useMyInvites()
-  const invitePartner = useInvitePartner()
-  const acceptInvite = useAcceptInvite()
-  const declineInvite = useDeclineInvite()
   const leaveCouple = useLeaveCouple()
   const deleteAccount = useDeleteAccount()
 
-  const [showConnectForm, setShowConnectForm] = useState(false)
-  const [emailInput, setEmailInput] = useState('')
-  const [sentCode, setSentCode] = useState<string | null>(null)
-  const [joinCodeInput, setJoinCodeInput] = useState('')
-  const [joinError, setJoinError] = useState<string | null>(null)
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const inCouple = coupleStatus?.inCouple ?? false
 
   async function handleDeleteAccount() {
     setDeleteError(null)
@@ -119,32 +105,6 @@ export function SettingsRoute() {
       )
     }
   }
-
-  async function handleInvite(e: FormEvent) {
-    e.preventDefault()
-    if (!emailInput.trim()) return
-    const result = await invitePartner.mutateAsync(emailInput.trim())
-    setSentCode(result.inviteCode)
-    setEmailInput('')
-  }
-
-  async function handleJoinWithCode(e: FormEvent) {
-    e.preventDefault()
-    if (!joinCodeInput.trim()) return
-    setJoinError(null)
-    try {
-      await acceptInvite.mutateAsync(joinCodeInput.trim())
-      setJoinCodeInput('')
-    } catch (err) {
-      setJoinError(
-        err instanceof Error ? err.message : 'Could not join with that code.'
-      )
-    }
-  }
-
-  const inCouple = coupleStatus?.inCouple ?? false
-  const received = invites?.received ?? []
-  const sent = invites?.sent ?? []
 
   return (
     <div className="space-y-6">
@@ -175,98 +135,11 @@ export function SettingsRoute() {
             onClick={() => leaveCouple.mutate()}
           />
         ) : (
-          <div>
-            <SettingsRow
-              icon={UserPlus}
-              label="Invite a partner"
-              onClick={() => setShowConnectForm((v) => !v)}
-            />
-            {showConnectForm && (
-              <form
-                onSubmit={handleInvite}
-                className="flex items-center gap-2 border-t border-line px-4 py-3"
-              >
-                <Input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="Partner's email"
-                  className="h-9"
-                  required
-                />
-                <Button type="submit" size="sm" disabled={invitePartner.isPending}>
-                  Invite
-                </Button>
-              </form>
-            )}
-            {sentCode && (
-              <div className="flex flex-col items-center gap-3 border-t border-line px-4 py-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Share this code, or have your partner scan the QR below:
-                </p>
-                <span className="font-mono text-lg text-gold">{sentCode}</span>
-                <QrCode value={`${window.location.origin}/join/${sentCode}`} />
-              </div>
-            )}
-            {sent.length > 0 && !sentCode && (
-              <p className="border-t border-line px-4 py-3 text-sm text-muted-foreground">
-                Invite sent to {sent[0].inviteeEmail} — waiting for them to
-                accept.
-              </p>
-            )}
-            <form
-              onSubmit={handleJoinWithCode}
-              className="flex flex-col gap-2 border-t border-line px-4 py-3"
-            >
-              <p className="text-sm text-parchment">
-                Have a code from your partner?
-              </p>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={joinCodeInput}
-                  onChange={(e) => setJoinCodeInput(e.target.value)}
-                  placeholder="Enter invite code"
-                  className="h-9 font-mono"
-                />
-                <Button type="submit" size="sm" disabled={acceptInvite.isPending}>
-                  Join
-                </Button>
-              </div>
-              {joinError && (
-                <p className="text-sm text-destructive">{joinError}</p>
-              )}
-            </form>
-            {received.map((invite) => (
-              <div
-                key={invite.id}
-                className="flex items-center justify-between border-t border-line px-4 py-3"
-              >
-                <span className="text-sm text-parchment">
-                  Invite from a partner — accept to connect
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    aria-label="Accept invite"
-                    onClick={() => acceptInvite.mutate(invite.inviteCode)}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    aria-label="Decline invite"
-                    onClick={() => declineInvite.mutate(invite.inviteCode)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <SettingsRow
+            icon={UserPlus}
+            label="Connect a partner"
+            to="/connect"
+          />
         )}
 
         <SettingsRow
@@ -310,10 +183,10 @@ export function SettingsRoute() {
               <DialogHeader>
                 <DialogTitle>Delete your account?</DialogTitle>
                 <DialogDescription>
-                  This permanently deletes your account, profile, and any
-                  data only you can see. Shared couple content (ratings,
-                  dates, wishlist, etc.) stays visible to your partner. This
-                  cannot be undone.
+                  This permanently deletes your account, profile, and any data
+                  only you can see. Shared couple content (ratings, dates,
+                  wishlist, etc.) stays visible to your partner. This cannot be
+                  undone.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-2">

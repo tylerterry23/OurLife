@@ -1,12 +1,20 @@
 import { Link } from 'react-router-dom'
-import { Calendar, Gift, LayoutGrid, MessageCircleQuestion } from 'lucide-react'
+import {
+  Calendar,
+  Gift,
+  HeartHandshake,
+  LayoutGrid,
+  MessageCircleQuestion,
+} from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDates } from '@/features/dates/hooks/useDates'
 import type { ImportantDate } from '@/features/dates/types'
 import { useQuizQuestions } from '@/features/quiz/hooks/useQuiz'
 import { useWishlistItems } from '@/features/wishlist/hooks/useWishlist'
 import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
+import { useCoupleStatus } from '@/features/couple/hooks/useCouple'
 import { profileLabel } from '@/features/profile/api/profileApi'
 
 function nextOccurrence(date: ImportantDate): Date {
@@ -25,6 +33,7 @@ function nextOccurrence(date: ImportantDate): Date {
 
 export function HomeRoute() {
   const { data: coupleProfiles } = useCoupleProfiles()
+  const { data: coupleStatus } = useCoupleStatus()
   const { data: dates } = useDates()
   const { data: questions } = useQuizQuestions()
   const { data: wishlistItems } = useWishlistItems()
@@ -33,6 +42,7 @@ export function HomeRoute() {
   const partnerLabel = coupleProfiles?.partner
     ? profileLabel(coupleProfiles.partner, 'Partner')
     : null
+  const inCouple = coupleStatus?.inCouple ?? false
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -55,6 +65,26 @@ export function HomeRoute() {
           {partnerLabel ? `${meLabel} & ${partnerLabel}` : meLabel}
         </p>
       </div>
+
+      {!inCouple && (
+        <Card className="border-gold/40">
+          <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
+            <HeartHandshake className="h-10 w-10 text-gold" />
+            <div className="space-y-1">
+              <p className="font-display text-xl text-parchment">
+                Connect with your partner
+              </p>
+              <p className="max-w-xs text-sm text-muted-foreground">
+                OurLife is made for two. Invite your partner to unlock your
+                shared dates, ratings, wishlist, and more.
+              </p>
+            </div>
+            <Button asChild>
+              <Link to="/connect">Get connected</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Link to="/modules/dates">

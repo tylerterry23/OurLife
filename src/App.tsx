@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useAuthStore } from '@/store/authStore'
 import { DatesRoute } from '@/routes/DatesRoute'
 import { GamesRoute } from '@/routes/GamesRoute'
+import { ConnectRoute } from '@/routes/ConnectRoute'
 import { ForgotPasswordRoute } from '@/routes/ForgotPasswordRoute'
 import { HomeRoute } from '@/routes/HomeRoute'
 import { JoinRoute } from '@/routes/JoinRoute'
@@ -58,6 +59,7 @@ function App() {
             }
           >
             <Route path="/" element={<HomeRoute />} />
+            <Route path="/connect" element={<ConnectRoute />} />
             <Route path="/modules" element={<ModulesRoute />} />
             <Route path="/modules/dates" element={<DatesRoute />} />
             <Route path="/modules/quiz" element={<QuizRoute />} />
