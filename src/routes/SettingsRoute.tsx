@@ -29,7 +29,6 @@ import { Input } from '@/components/ui/input'
 import { QrCode } from '@/components/QrCode'
 import { isSupabaseConfigured } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
-import { useSettingsStore } from '@/store/settingsStore'
 import {
   useAcceptInvite,
   useCoupleStatus,
@@ -38,7 +37,11 @@ import {
   useLeaveCouple,
   useMyInvites,
 } from '@/features/couple/hooks/useCouple'
-import { useDeleteAccount } from '@/features/profile/hooks/useProfile'
+import {
+  useCoupleProfiles,
+  useDeleteAccount,
+} from '@/features/profile/hooks/useProfile'
+import { profileLabel } from '@/features/profile/api/profileApi'
 
 function SettingsRow({
   icon: Icon,
@@ -85,7 +88,8 @@ function SettingsRow({
 export function SettingsRoute() {
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout)
-  const { displayNames } = useSettingsStore()
+  const { data: coupleProfiles } = useCoupleProfiles()
+  const partnerLabel = profileLabel(coupleProfiles?.partner, 'your partner')
   const { data: coupleStatus } = useCoupleStatus()
   const { data: invites } = useMyInvites()
   const invitePartner = useInvitePartner()
@@ -167,7 +171,7 @@ export function SettingsRoute() {
         {inCouple ? (
           <SettingsRow
             icon={UserX}
-            label={`Leave partner (${displayNames.partner2})`}
+            label={`Leave partner (${partnerLabel})`}
             onClick={() => leaveCouple.mutate()}
           />
         ) : (

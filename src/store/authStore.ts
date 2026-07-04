@@ -7,11 +7,15 @@ interface AuthState {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  signUp: (
-    email: string,
+  signUp: (params: {
+    email: string
     password: string
-  ) => Promise<{ needsEmailConfirmation: boolean }>
+    displayName: string
+    username: string
+  }) => Promise<{ needsEmailConfirmation: boolean }>
   logout: () => Promise<void>
+  requestPasswordReset: (email: string) => Promise<void>
+  updatePassword: (password: string) => Promise<void>
   initSession: () => Promise<void>
 }
 
@@ -46,15 +50,24 @@ export const useAuthStore = create<AuthState>()(
         if (error) throw error
         set({ user: data.user })
       },
-      signUp: async (email, password) => {
+      signUp: async ({ email, password, displayName, username }) => {
         if (!isSupabaseConfigured) {
           set({ user: createDemoUser(email || 'demo@ourlife.app') })
           return { needsEmailConfirmation: false }
         }
 
+        // display_name / username go into user metadata so the
+        // handle_new_user DB trigger can build the profile row at signup
+        // time — this is what makes them survive email confirmation.
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              display_name: displayName,
+              username: username || null,
+            },
+          },
         })
         if (error) throw error
 
@@ -73,6 +86,18 @@ export const useAuthStore = create<AuthState>()(
 
         await supabase.auth.signOut()
         set({ user: null })
+      },
+      requestPasswordReset: async (email) => {
+        if (!isSupabaseConfigured) return
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        })
+        if (error) throw error
+      },
+      updatePassword: async (password) => {
+        if (!isSupabaseConfigured) return
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) throw error
       },
       initSession: async () => {
         if (!isSupabaseConfigured) {

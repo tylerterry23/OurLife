@@ -1,9 +1,17 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import { clearCoupleCache } from '@/lib/coupleContext'
+import {
+  DEMO_PARTNER_USER_ID,
+  readDemoIdentity,
+  writeDemoIdentity,
+} from '@/lib/demoIdentity'
+import type { RelationshipStatus } from '../types'
 
 export interface CoupleStatus {
   inCouple: boolean
+  coupleId: string | null
   partnerUserId: string | null
+  relationshipStatus: RelationshipStatus | null
 }
 
 export interface CoupleInvite {
@@ -15,19 +23,69 @@ export interface CoupleInvite {
 }
 
 export async function getMyCoupleStatus(): Promise<CoupleStatus> {
-  if (!isSupabaseConfigured) return { inCouple: true, partnerUserId: null }
+  if (!isSupabaseConfigured) {
+    return {
+      inCouple: true,
+      coupleId: 'demo-couple',
+      partnerUserId: DEMO_PARTNER_USER_ID,
+      relationshipStatus: readDemoIdentity().relationshipStatus,
+    }
+  }
 
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { inCouple: false, partnerUserId: null }
+  if (!user) {
+    return {
+      inCouple: false,
+      coupleId: null,
+      partnerUserId: null,
+      relationshipStatus: null,
+    }
+  }
 
-  const { data, error } = await supabase.from('couple_members').select('user_id')
+  // couples RLS returns only the caller's couple; couple_members returns
+  // both members — one round trip each, resolved together.
+  const [couplesRes, membersRes] = await Promise.all([
+    supabase.from('couples').select('id, status'),
+    supabase.from('couple_members').select('user_id'),
+  ])
+  if (couplesRes.error) throw couplesRes.error
+  if (membersRes.error) throw membersRes.error
+
+  const couple = couplesRes.data[0]
+  if (!couple) {
+    return {
+      inCouple: false,
+      coupleId: null,
+      partnerUserId: null,
+      relationshipStatus: null,
+    }
+  }
+
+  const partner = membersRes.data.find((m) => m.user_id !== user.id)
+  return {
+    inCouple: true,
+    coupleId: couple.id,
+    partnerUserId: partner?.user_id ?? null,
+    relationshipStatus: couple.status as RelationshipStatus,
+  }
+}
+
+export async function setCoupleRelationshipStatus(
+  coupleId: string,
+  status: RelationshipStatus
+): Promise<void> {
+  if (!isSupabaseConfigured) {
+    writeDemoIdentity({ relationshipStatus: status })
+    return
+  }
+
+  const { error } = await supabase
+    .from('couples')
+    .update({ status })
+    .eq('id', coupleId)
   if (error) throw error
-  if (data.length === 0) return { inCouple: false, partnerUserId: null }
-
-  const partner = data.find((member) => member.user_id !== user.id)
-  return { inCouple: true, partnerUserId: partner?.user_id ?? null }
 }
 
 // couple_invites' RLS returns rows the caller sent OR rows addressed to

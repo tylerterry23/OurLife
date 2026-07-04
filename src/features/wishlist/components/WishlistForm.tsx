@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { useSettingsStore } from '@/store/settingsStore'
+import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
+import { profileLabel } from '@/features/profile/api/profileApi'
 import { useCreateWishlistItem } from '../hooks/useWishlist'
 
 interface WishlistFormProps {
@@ -12,10 +13,10 @@ interface WishlistFormProps {
 }
 
 export function WishlistForm({ onDone }: WishlistFormProps) {
-  const { displayNames } = useSettingsStore()
+  const { data: coupleProfiles } = useCoupleProfiles()
+  const meLabel = profileLabel(coupleProfiles?.me, 'You')
   const createItem = useCreateWishlistItem()
 
-  const [addedBy, setAddedBy] = useState(displayNames.partner1)
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
   const [notes, setNotes] = useState('')
@@ -24,8 +25,9 @@ export function WishlistForm({ onDone }: WishlistFormProps) {
     e.preventDefault()
     if (!title.trim()) return
 
+    // Recorded as the logged-in user automatically.
     await createItem.mutateAsync({
-      addedBy,
+      addedBy: meLabel,
       title: title.trim(),
       url: url.trim() || null,
       notes: notes.trim() || null,
@@ -40,23 +42,6 @@ export function WishlistForm({ onDone }: WishlistFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="addedBy">Added by</Label>
-        <select
-          id="addedBy"
-          value={addedBy}
-          onChange={(e) => setAddedBy(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <option value={displayNames.partner1} className="bg-card">
-            {displayNames.partner1}
-          </option>
-          <option value={displayNames.partner2} className="bg-card">
-            {displayNames.partner2}
-          </option>
-        </select>
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="title">Item</Label>
         <Input

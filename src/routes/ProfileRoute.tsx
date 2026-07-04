@@ -7,72 +7,94 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { isSupabaseConfigured } from '@/lib/supabaseClient'
-import { useSettingsStore } from '@/store/settingsStore'
+import {
+  useCoupleStatus,
+  useSetRelationshipStatus,
+} from '@/features/couple/hooks/useCouple'
 import {
   relationshipStatusLabels,
-  useProfileStore,
+  relationshipStatusOptions,
   type RelationshipStatus,
-} from '@/store/profileStore'
-import { useCoupleStatus } from '@/features/couple/hooks/useCouple'
+} from '@/features/couple/types'
 import {
+  useCoupleProfiles,
   useMyProfile,
   useUpdateProfile,
   useUploadAvatar,
 } from '@/features/profile/hooks/useProfile'
-
-const statusOptions = Object.keys(
-  relationshipStatusLabels
-) as RelationshipStatus[]
+import { isUsernameAvailable, profileLabel } from '@/features/profile/api/profileApi'
 
 interface ProfileEditorProps {
   initialDisplayName: string
   initialUsername: string
-  initialStatus: RelationshipStatus
   avatarUrl: string | null | undefined
   partnerLabel: string | null
-  onSave: (values: {
-    displayName: string
-    username: string
-    status: RelationshipStatus
-  }) => Promise<void>
-  onUploadAvatar?: (file: File) => void
-  isSaving: boolean
-  isUploadingAvatar: boolean
+  inCouple: boolean
+  relationshipStatus: RelationshipStatus | null
+  coupleId: string | null
 }
 
 function ProfileEditor({
   initialDisplayName,
   initialUsername,
-  initialStatus,
   avatarUrl,
   partnerLabel,
-  onSave,
-  onUploadAvatar,
-  isSaving,
-  isUploadingAvatar,
+  inCouple,
+  relationshipStatus,
+  coupleId,
 }: ProfileEditorProps) {
+  const updateProfile = useUpdateProfile()
+  const uploadAvatar = useUploadAvatar()
+  const setStatus = useSetRelationshipStatus()
+
   const [displayNameInput, setDisplayNameInput] = useState(initialDisplayName)
   const [usernameInput, setUsernameInput] = useState(initialUsername)
-  const [statusInput, setStatusInput] = useState(initialStatus)
+  const [statusInput, setStatusInput] = useState<RelationshipStatus>(
+    relationshipStatus ?? 'dating'
+  )
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const displayStatus = relationshipStatus ?? statusInput
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!usernameInput.trim() || !displayNameInput.trim()) return
-    await onSave({
-      displayName: displayNameInput.trim(),
-      username: usernameInput.trim(),
-      status: statusInput,
-    })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setError(null)
+    if (!displayNameInput.trim()) return
+
+    const nextUsername = usernameInput.trim()
+    try {
+      // Only re-check availability if the username actually changed.
+      if (nextUsername && nextUsername !== initialUsername) {
+        const available = await isUsernameAvailable(nextUsername)
+        if (!available) {
+          setError('That username is already taken.')
+          return
+        }
+      }
+
+      await updateProfile.mutateAsync({
+        displayName: displayNameInput.trim(),
+        username: nextUsername || null,
+      })
+
+      if (inCouple && coupleId && statusInput !== relationshipStatus) {
+        await setStatus.mutateAsync({ coupleId, status: statusInput })
+      }
+
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not save your profile.'
+      )
+    }
   }
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (file) onUploadAvatar?.(file)
+    if (file) uploadAvatar.mutate(file)
     e.target.value = ''
   }
 
@@ -94,12 +116,8 @@ function ProfileEditor({
             )}
             <button
               type="button"
-              aria-label={
-                onUploadAvatar
-                  ? 'Change profile picture'
-                  : 'Change profile picture (unavailable in demo mode)'
-              }
-              disabled={!onUploadAvatar || isUploadingAvatar}
+              aria-label="Change profile picture"
+              disabled={uploadAvatar.isPending}
               onClick={() => fileInputRef.current?.click()}
               className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-line bg-ink-raised text-parchment-dim transition-colors hover:text-parchment disabled:opacity-70"
             >
@@ -121,11 +139,17 @@ function ProfileEditor({
               @{usernameInput || 'username'}
             </p>
           </div>
-          <p className="flex items-center gap-1.5 text-sm text-gold">
-            <Heart className="h-4 w-4" />
-            {relationshipStatusLabels[statusInput]}
-            {partnerLabel && ` with ${partnerLabel}`}
-          </p>
+          {inCouple ? (
+            <p className="flex items-center gap-1.5 text-sm text-gold">
+              <Heart className="h-4 w-4" />
+              {relationshipStatusLabels[displayStatus]}
+              {partnerLabel && ` with ${partnerLabel}`}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Not connected with a partner yet.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -150,29 +174,39 @@ function ProfileEditor({
                 id="username"
                 value={usernameInput}
                 onChange={(e) =>
-                  setUsernameInput(e.target.value.replace(/\s+/g, ''))
+                  setUsernameInput(
+                    e.target.value.replace(/\s+/g, '').toLowerCase()
+                  )
                 }
-                required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <select
-                id="status"
-                value={statusInput}
-                onChange={(e) =>
-                  setStatusInput(e.target.value as RelationshipStatus)
-                }
-                className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {statusOptions.map((option) => (
-                  <option key={option} value={option} className="bg-card">
-                    {relationshipStatusLabels[option]}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Button type="submit" disabled={isSaving}>
+            {inCouple && (
+              <div className="space-y-2">
+                <Label htmlFor="status">Relationship status</Label>
+                <select
+                  id="status"
+                  value={statusInput}
+                  onChange={(e) =>
+                    setStatusInput(e.target.value as RelationshipStatus)
+                  }
+                  className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {relationshipStatusOptions.map((option) => (
+                    <option key={option} value={option} className="bg-card">
+                      {relationshipStatusLabels[option]}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Shared with your partner.
+                </p>
+              </div>
+            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button
+              type="submit"
+              disabled={updateProfile.isPending || setStatus.isPending}
+            >
               {saved ? 'Saved' : 'Save'}
             </Button>
           </form>
@@ -183,29 +217,13 @@ function ProfileEditor({
 }
 
 export function ProfileRoute() {
-  const { displayNames, setDisplayNames } = useSettingsStore()
-  const demoProfile = useProfileStore()
+  const { data: profile } = useMyProfile()
+  const { data: coupleProfiles } = useCoupleProfiles()
   const { data: coupleStatus } = useCoupleStatus()
 
-  const { data: realProfile } = useMyProfile()
-  const updateProfile = useUpdateProfile()
-  const uploadAvatar = useUploadAvatar()
-
-  const partnerLabel = coupleStatus?.inCouple ? displayNames.partner2 : null
-
-  async function handleSave(values: {
-    displayName: string
-    username: string
-    status: RelationshipStatus
-  }) {
-    if (isSupabaseConfigured) {
-      await updateProfile.mutateAsync(values)
-    } else {
-      demoProfile.setUsername(values.username)
-      demoProfile.setStatus(values.status)
-      setDisplayNames({ partner1: values.displayName })
-    }
-  }
+  const partnerLabel = coupleProfiles?.partner
+    ? profileLabel(coupleProfiles.partner, 'Partner')
+    : null
 
   const header = (
     <div className="flex items-center justify-between">
@@ -220,10 +238,9 @@ export function ProfileRoute() {
     </div>
   )
 
-  // Wait for the real profile fetch to settle before mounting the editor,
-  // so its initial local state reflects loaded data instead of a flash of
-  // empty defaults (and so we only need to key/remount it once).
-  if (isSupabaseConfigured && realProfile === undefined) {
+  // Wait for the profile fetch to settle so the editor's initial local state
+  // reflects loaded data rather than a flash of empty defaults.
+  if (profile === undefined || coupleStatus === undefined) {
     return (
       <div className="space-y-6">
         {header}
@@ -237,32 +254,14 @@ export function ProfileRoute() {
       {header}
 
       <ProfileEditor
-        key={isSupabaseConfigured ? 'real' : 'demo'}
-        initialDisplayName={
-          isSupabaseConfigured
-            ? (realProfile?.displayName ?? '')
-            : displayNames.partner1
-        }
-        initialUsername={
-          isSupabaseConfigured
-            ? (realProfile?.username ?? '')
-            : demoProfile.username
-        }
-        initialStatus={
-          isSupabaseConfigured
-            ? ((realProfile?.status as RelationshipStatus) ?? 'dating')
-            : demoProfile.status
-        }
-        avatarUrl={isSupabaseConfigured ? realProfile?.avatarUrl : null}
+        key={profile?.userId ?? 'me'}
+        initialDisplayName={profile?.displayName ?? ''}
+        initialUsername={profile?.username ?? ''}
+        avatarUrl={profile?.avatarUrl}
         partnerLabel={partnerLabel}
-        onSave={handleSave}
-        onUploadAvatar={
-          isSupabaseConfigured
-            ? (file) => uploadAvatar.mutate(file)
-            : undefined
-        }
-        isSaving={updateProfile.isPending}
-        isUploadingAvatar={uploadAvatar.isPending}
+        inCouple={coupleStatus?.inCouple ?? false}
+        relationshipStatus={coupleStatus?.relationshipStatus ?? null}
+        coupleId={coupleStatus?.coupleId ?? null}
       />
 
       <Card className="opacity-60">

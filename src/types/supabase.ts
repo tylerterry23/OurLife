@@ -110,14 +110,17 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          status: string
         }
         Insert: {
           created_at?: string
           id?: string
+          status?: string
         }
         Update: {
           created_at?: string
           id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -196,7 +199,6 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
-          status: string
           updated_at: string
           user_id: string
           username: string | null
@@ -205,7 +207,6 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
-          status?: string
           updated_at?: string
           user_id: string
           username?: string | null
@@ -214,7 +215,6 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
-          status?: string
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -383,6 +383,7 @@ export type Database = {
       }
       delete_my_account: { Args: never; Returns: undefined }
       get_my_couple_id: { Args: never; Returns: string }
+      is_username_available: { Args: { p_username: string }; Returns: boolean }
       leave_couple: { Args: never; Returns: undefined }
     }
     Enums: {

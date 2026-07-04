@@ -6,7 +6,8 @@ import { useDates } from '@/features/dates/hooks/useDates'
 import type { ImportantDate } from '@/features/dates/types'
 import { useQuizQuestions } from '@/features/quiz/hooks/useQuiz'
 import { useWishlistItems } from '@/features/wishlist/hooks/useWishlist'
-import { useSettingsStore } from '@/store/settingsStore'
+import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
+import { profileLabel } from '@/features/profile/api/profileApi'
 
 function nextOccurrence(date: ImportantDate): Date {
   const [year, month, day] = date.date.split('-').map(Number)
@@ -23,10 +24,15 @@ function nextOccurrence(date: ImportantDate): Date {
 }
 
 export function HomeRoute() {
-  const { displayNames } = useSettingsStore()
+  const { data: coupleProfiles } = useCoupleProfiles()
   const { data: dates } = useDates()
   const { data: questions } = useQuizQuestions()
   const { data: wishlistItems } = useWishlistItems()
+
+  const meLabel = profileLabel(coupleProfiles?.me, 'You')
+  const partnerLabel = coupleProfiles?.partner
+    ? profileLabel(coupleProfiles.partner, 'Partner')
+    : null
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -46,7 +52,7 @@ export function HomeRoute() {
           Welcome back
         </h1>
         <p className="mt-1 text-muted-foreground">
-          {displayNames.partner1} &amp; {displayNames.partner2}
+          {partnerLabel ? `${meLabel} & ${partnerLabel}` : meLabel}
         </p>
       </div>
 

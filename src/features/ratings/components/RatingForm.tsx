@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { useSettingsStore } from '@/store/settingsStore'
+import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
+import { profileLabel } from '@/features/profile/api/profileApi'
 import { useCreateRating } from '../hooks/useRatings'
 import type { RatingCategory } from '../types'
 
@@ -15,7 +16,9 @@ interface RatingFormProps {
 }
 
 export function RatingForm({ onDone }: RatingFormProps) {
-  const { displayNames } = useSettingsStore()
+  const { data: coupleProfiles } = useCoupleProfiles()
+  const meLabel = profileLabel(coupleProfiles?.me, 'You')
+  const partnerLabel = profileLabel(coupleProfiles?.partner, 'Partner')
   const createRating = useCreateRating()
 
   const [category, setCategory] = useState<RatingCategory>('movie')
@@ -74,7 +77,7 @@ export function RatingForm({ onDone }: RatingFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="myScore">{displayNames.partner1}'s score</Label>
+          <Label htmlFor="myScore">{meLabel}'s score</Label>
           <Input
             id="myScore"
             type="number"
@@ -87,7 +90,7 @@ export function RatingForm({ onDone }: RatingFormProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="partnerScore">{displayNames.partner2}'s score</Label>
+          <Label htmlFor="partnerScore">{partnerLabel}'s score</Label>
           <Input
             id="partnerScore"
             type="number"

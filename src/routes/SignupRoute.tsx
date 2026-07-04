@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { isSupabaseConfigured } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
-import { updateMyProfile } from '@/features/profile/api/profileApi'
+import { isUsernameAvailable } from '@/features/profile/api/profileApi'
 
 const MIN_PASSWORD_LENGTH = 6
 
 export function SignupRoute() {
   const { user, signUp } = useAuthStore()
   const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -28,6 +29,10 @@ export function SignupRoute() {
     e.preventDefault()
     setError(null)
 
+    if (!displayName.trim()) {
+      setError('Please enter a display name.')
+      return
+    }
     if (password.length < MIN_PASSWORD_LENGTH) {
       setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
       return
@@ -39,11 +44,24 @@ export function SignupRoute() {
 
     setIsSubmitting(true)
     try {
-      const result = await signUp(email, password)
+      const trimmedUsername = username.trim()
+      if (trimmedUsername) {
+        const available = await isUsernameAvailable(trimmedUsername)
+        if (!available) {
+          setError('That username is already taken.')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      const result = await signUp({
+        email,
+        password,
+        displayName: displayName.trim(),
+        username: trimmedUsername,
+      })
       if (result.needsEmailConfirmation) {
         setCheckEmail(true)
-      } else if (displayName.trim()) {
-        await updateMyProfile({ displayName: displayName.trim() })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account.')
@@ -72,7 +90,7 @@ export function SignupRoute() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-ink px-4">
+    <div className="flex min-h-svh items-center justify-center bg-ink px-4 py-8">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="font-display text-4xl italic text-parchment">
@@ -97,7 +115,21 @@ export function SignupRoute() {
               autoComplete="name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="How your partner sees you"
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              autoComplete="username"
+              value={username}
+              onChange={(e) =>
+                setUsername(e.target.value.replace(/\s+/g, '').toLowerCase())
+              }
+              placeholder="optional"
             />
           </div>
 

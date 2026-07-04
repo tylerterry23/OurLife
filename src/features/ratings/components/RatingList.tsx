@@ -3,13 +3,16 @@ import { Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { useSettingsStore } from '@/store/settingsStore'
+import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
+import { profileLabel } from '@/features/profile/api/profileApi'
 import { useDeleteRating, useRatings } from '../hooks/useRatings'
 
 export function RatingList() {
   const { data: ratings, isLoading, isError } = useRatings()
   const deleteRating = useDeleteRating()
-  const { displayNames } = useSettingsStore()
+  const { data: coupleProfiles } = useCoupleProfiles()
+  const meLabel = profileLabel(coupleProfiles?.me, 'You')
+  const partnerLabel = profileLabel(coupleProfiles?.partner, 'Partner')
 
   if (isLoading) {
     return <p className="text-muted-foreground">Loading ratings...</p>
@@ -50,10 +53,10 @@ export function RatingList() {
           <CardContent className="space-y-2">
             <div className="flex gap-4 text-sm text-muted-foreground">
               <span>
-                {displayNames.partner1}: {rating.myScore ?? '—'}
+                {meLabel}: {rating.myScore ?? '—'}
               </span>
               <span>
-                {displayNames.partner2}: {rating.partnerScore ?? '—'}
+                {partnerLabel}: {rating.partnerScore ?? '—'}
               </span>
             </div>
             {rating.note && <p className="text-sm">{rating.note}</p>}

@@ -6,9 +6,11 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useAuthStore } from '@/store/authStore'
 import { DatesRoute } from '@/routes/DatesRoute'
 import { GamesRoute } from '@/routes/GamesRoute'
+import { ForgotPasswordRoute } from '@/routes/ForgotPasswordRoute'
 import { HomeRoute } from '@/routes/HomeRoute'
 import { JoinRoute } from '@/routes/JoinRoute'
 import { LoginRoute } from '@/routes/LoginRoute'
+import { ResetPasswordRoute } from '@/routes/ResetPasswordRoute'
 import { ModulesRoute } from '@/routes/ModulesRoute'
 import { PlacesRoute } from '@/routes/PlacesRoute'
 import { ProfileRoute } from '@/routes/ProfileRoute'
@@ -45,6 +47,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginRoute />} />
           <Route path="/signup" element={<SignupRoute />} />
+          <Route path="/forgot-password" element={<ForgotPasswordRoute />} />
+          <Route path="/reset-password" element={<ResetPasswordRoute />} />
           <Route path="/join/:code" element={<JoinRoute />} />
           <Route
             element={
