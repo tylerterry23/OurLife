@@ -20,8 +20,8 @@ export function RatingForm({ onDone }: RatingFormProps) {
 
   const [category, setCategory] = useState<RatingCategory>('movie')
   const [title, setTitle] = useState('')
-  const [tylerScore, setTylerScore] = useState('')
-  const [laurenScore, setLaurenScore] = useState('')
+  const [myScore, setMyScore] = useState('')
+  const [partnerScore, setPartnerScore] = useState('')
   const [note, setNote] = useState('')
 
   async function handleSubmit(e: FormEvent) {
@@ -31,14 +31,14 @@ export function RatingForm({ onDone }: RatingFormProps) {
     await createRating.mutateAsync({
       category,
       title: title.trim(),
-      tylerScore: tylerScore ? Number(tylerScore) : null,
-      laurenScore: laurenScore ? Number(laurenScore) : null,
+      myScore: myScore ? Number(myScore) : null,
+      partnerScore: partnerScore ? Number(partnerScore) : null,
       note: note.trim() || null,
     })
 
     setTitle('')
-    setTylerScore('')
-    setLaurenScore('')
+    setMyScore('')
+    setPartnerScore('')
     setNote('')
     onDone?.()
   }
@@ -74,28 +74,28 @@ export function RatingForm({ onDone }: RatingFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="tylerScore">{displayNames.partner1}'s score</Label>
+          <Label htmlFor="myScore">{displayNames.partner1}'s score</Label>
           <Input
-            id="tylerScore"
+            id="myScore"
             type="number"
             step="0.1"
             min={0}
             max={10}
-            value={tylerScore}
-            onChange={(e) => setTylerScore(e.target.value)}
+            value={myScore}
+            onChange={(e) => setMyScore(e.target.value)}
             placeholder="0-10"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="laurenScore">{displayNames.partner2}'s score</Label>
+          <Label htmlFor="partnerScore">{displayNames.partner2}'s score</Label>
           <Input
-            id="laurenScore"
+            id="partnerScore"
             type="number"
             step="0.1"
             min={0}
             max={10}
-            value={laurenScore}
-            onChange={(e) => setLaurenScore(e.target.value)}
+            value={partnerScore}
+            onChange={(e) => setPartnerScore(e.target.value)}
             placeholder="0-10"
           />
         </div>

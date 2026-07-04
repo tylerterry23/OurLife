@@ -13,6 +13,7 @@ import {
   useProfileStore,
   type RelationshipStatus,
 } from '@/store/profileStore'
+import { useCoupleStatus } from '@/features/couple/hooks/useCouple'
 
 const statusOptions = Object.keys(
   relationshipStatusLabels
@@ -20,8 +21,8 @@ const statusOptions = Object.keys(
 
 export function ProfileRoute() {
   const { displayNames, setDisplayNames } = useSettingsStore()
-  const { username, status, isConnectedToPartner, setUsername, setStatus } =
-    useProfileStore()
+  const { username, status, setUsername, setStatus } = useProfileStore()
+  const { data: coupleStatus } = useCoupleStatus()
 
   const [usernameInput, setUsernameInput] = useState(username)
   const [displayNameInput, setDisplayNameInput] = useState(
@@ -77,7 +78,7 @@ export function ProfileRoute() {
           <p className="flex items-center gap-1.5 text-sm text-gold">
             <Heart className="h-4 w-4" />
             {relationshipStatusLabels[status]}
-            {isConnectedToPartner && ` with ${displayNames.partner2}`}
+            {coupleStatus?.inCouple && ` with ${displayNames.partner2}`}
           </p>
         </CardContent>
       </Card>

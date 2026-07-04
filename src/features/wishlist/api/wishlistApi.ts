@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import { createDemoCollection } from '@/lib/demoStore'
+import { getMyCoupleId } from '@/lib/coupleContext'
 import type { Database } from '@/types/supabase'
 import type { WishlistItem } from '../types'
 
@@ -21,7 +22,7 @@ function toWishlistItem(row: WishlistRow): WishlistItem {
 
 function toInsert(
   payload: Omit<WishlistItem, 'id' | 'createdAt'>
-): WishlistInsert {
+): Omit<WishlistInsert, 'couple_id'> {
   return {
     added_by: payload.addedBy,
     title: payload.title,
@@ -100,9 +101,12 @@ export async function createWishlistItem(
     })
   }
 
+  const coupleId = await getMyCoupleId()
+  if (!coupleId) throw new Error('You need to be in a couple to add a wishlist item.')
+
   const { data, error } = await supabase
     .from('wishlist_items')
-    .insert(toInsert(payload))
+    .insert({ ...toInsert(payload), couple_id: coupleId })
     .select()
     .single()
   if (error) throw error

@@ -50,10 +50,10 @@ export function RatingList() {
           <CardContent className="space-y-2">
             <div className="flex gap-4 text-sm text-muted-foreground">
               <span>
-                {displayNames.partner1}: {rating.tylerScore ?? '—'}
+                {displayNames.partner1}: {rating.myScore ?? '—'}
               </span>
               <span>
-                {displayNames.partner2}: {rating.laurenScore ?? '—'}
+                {displayNames.partner2}: {rating.partnerScore ?? '—'}
               </span>
             </div>
             {rating.note && <p className="text-sm">{rating.note}</p>}

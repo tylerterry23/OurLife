@@ -19,10 +19,8 @@ export const relationshipStatusLabels: Record<RelationshipStatus, string> = {
 interface ProfileState {
   username: string
   status: RelationshipStatus
-  isConnectedToPartner: boolean
   setUsername: (username: string) => void
   setStatus: (status: RelationshipStatus) => void
-  setIsConnectedToPartner: (connected: boolean) => void
 }
 
 export const useProfileStore = create<ProfileState>()(
@@ -30,11 +28,8 @@ export const useProfileStore = create<ProfileState>()(
     (set) => ({
       username: 'tyler',
       status: 'dating',
-      isConnectedToPartner: true,
       setUsername: (username) => set({ username }),
       setStatus: (status) => set({ status }),
-      setIsConnectedToPartner: (isConnectedToPartner) =>
-        set({ isConnectedToPartner }),
     }),
     { name: 'profile-storage' }
   )

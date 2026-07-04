@@ -1,6 +1,3 @@
-// Hand-written stub. Once the Supabase project exists, replace this file by
-// running: npx supabase gen types typescript --project-id <id> > src/types/supabase.ts
-
 export type Json =
   | string
   | number
@@ -9,150 +6,353 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      ratings: {
+      couple_invites: {
         Row: {
-          id: string
-          category: 'movie' | 'show' | 'restaurant' | 'city'
-          title: string
-          tyler_score: number | null
-          lauren_score: number | null
-          note: string | null
+          couple_id: string
           created_at: string
+          id: string
+          invite_code: string
+          invitee_email: string
+          inviter_id: string
+          responded_at: string | null
+          status: string
         }
         Insert: {
-          id?: string
-          category: 'movie' | 'show' | 'restaurant' | 'city'
-          title: string
-          tyler_score?: number | null
-          lauren_score?: number | null
-          note?: string | null
+          couple_id: string
           created_at?: string
+          id?: string
+          invite_code?: string
+          invitee_email: string
+          inviter_id: string
+          responded_at?: string | null
+          status?: string
         }
         Update: {
-          id?: string
-          category?: 'movie' | 'show' | 'restaurant' | 'city'
-          title?: string
-          tyler_score?: number | null
-          lauren_score?: number | null
-          note?: string | null
+          couple_id?: string
           created_at?: string
+          id?: string
+          invite_code?: string
+          invitee_email?: string
+          inviter_id?: string
+          responded_at?: string | null
+          status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "couple_invites_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      places: {
+      couple_members: {
         Row: {
-          id: string
-          name: string
-          status: 'visited' | 'planned'
-          city: string | null
-          notes: string | null
-          created_at: string
+          couple_id: string
+          joined_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          name: string
-          status: 'visited' | 'planned'
-          city?: string | null
-          notes?: string | null
-          created_at?: string
+          couple_id: string
+          joined_at?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          name?: string
-          status?: 'visited' | 'planned'
-          city?: string | null
-          notes?: string | null
+          couple_id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couple_members_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      couples: {
+        Row: {
+          created_at: string
+          id: string
+        }
+        Insert: {
           created_at?: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
         }
         Relationships: []
       }
       important_dates: {
         Row: {
+          couple_id: string
+          date: string
           id: string
           label: string
-          date: string
           recurring: boolean
         }
         Insert: {
+          couple_id: string
+          date: string
           id?: string
           label: string
-          date: string
           recurring?: boolean
         }
         Update: {
+          couple_id?: string
+          date?: string
           id?: string
           label?: string
-          date?: string
           recurring?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "important_dates_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      places: {
+        Row: {
+          city: string | null
+          couple_id: string
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          city?: string | null
+          couple_id: string
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          status: string
+        }
+        Update: {
+          city?: string | null
+          couple_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "places_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_questions: {
         Row: {
-          id: string
-          asked_by: string
-          question: string
           answer: string | null
           answered_at: string | null
+          asked_by: string
+          couple_id: string
           created_at: string
+          id: string
+          question: string
         }
         Insert: {
-          id?: string
-          asked_by: string
-          question: string
           answer?: string | null
           answered_at?: string | null
+          asked_by: string
+          couple_id: string
           created_at?: string
+          id?: string
+          question: string
         }
         Update: {
-          id?: string
-          asked_by?: string
-          question?: string
           answer?: string | null
           answered_at?: string | null
+          asked_by?: string
+          couple_id?: string
           created_at?: string
+          id?: string
+          question?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rating_scores: {
+        Row: {
+          rating_id: string
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          rating_id: string
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          rating_id?: string
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rating_scores_rating_id_fkey"
+            columns: ["rating_id"]
+            isOneToOne: false
+            referencedRelation: "ratings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ratings: {
+        Row: {
+          category: string
+          couple_id: string
+          created_at: string
+          id: string
+          note: string | null
+          title: string
+        }
+        Insert: {
+          category: string
+          couple_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          title: string
+        }
+        Update: {
+          category?: string
+          couple_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wishlist_items: {
         Row: {
-          id: string
           added_by: string
+          claimed: boolean
+          couple_id: string
+          created_at: string
+          id: string
+          notes: string | null
           title: string
           url: string | null
-          notes: string | null
-          claimed: boolean
-          created_at: string
         }
         Insert: {
-          id?: string
           added_by: string
+          claimed?: boolean
+          couple_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
           title: string
           url?: string | null
-          notes?: string | null
-          claimed?: boolean
-          created_at?: string
         }
         Update: {
-          id?: string
           added_by?: string
+          claimed?: boolean
+          couple_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
           title?: string
           url?: string | null
-          notes?: string | null
-          claimed?: boolean
-          created_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      accept_couple_invite: {
+        Args: { p_invite_code: string }
+        Returns: undefined
+      }
+      create_couple_and_invite: {
+        Args: { p_invitee_email: string }
+        Returns: {
+          invite_code: string
+          invite_id: string
+        }[]
+      }
+      decline_couple_invite: {
+        Args: { p_invite_code: string }
+        Returns: undefined
+      }
+      get_my_couple_id: { Args: never; Returns: string }
+      leave_couple: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
@@ -162,3 +362,129 @@ export interface Database {
     }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {},
+  },
+} as const

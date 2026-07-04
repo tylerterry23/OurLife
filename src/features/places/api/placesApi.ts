@@ -1,7 +1,8 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import { createDemoCollection } from '@/lib/demoStore'
+import { getMyCoupleId } from '@/lib/coupleContext'
 import type { Database } from '@/types/supabase'
-import type { Place } from '../types'
+import type { Place, PlaceStatus } from '../types'
 
 type PlaceRow = Database['public']['Tables']['places']['Row']
 type PlaceInsert = Database['public']['Tables']['places']['Insert']
@@ -11,14 +12,14 @@ function toPlace(row: PlaceRow): Place {
   return {
     id: row.id,
     name: row.name,
-    status: row.status,
+    status: row.status as PlaceStatus,
     city: row.city,
     notes: row.notes,
     createdAt: row.created_at,
   }
 }
 
-function toInsert(payload: Omit<Place, 'id' | 'createdAt'>): PlaceInsert {
+function toInsert(payload: Omit<Place, 'id' | 'createdAt'>): Omit<PlaceInsert, 'couple_id'> {
   return {
     name: payload.name,
     status: payload.status,
@@ -93,9 +94,12 @@ export async function createPlace(
     })
   }
 
+  const coupleId = await getMyCoupleId()
+  if (!coupleId) throw new Error('You need to be in a couple to add a place.')
+
   const { data, error } = await supabase
     .from('places')
-    .insert(toInsert(payload))
+    .insert({ ...toInsert(payload), couple_id: coupleId })
     .select()
     .single()
   if (error) throw error

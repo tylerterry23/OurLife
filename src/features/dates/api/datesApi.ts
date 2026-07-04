@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import { createDemoCollection } from '@/lib/demoStore'
+import { getMyCoupleId } from '@/lib/coupleContext'
 import type { Database } from '@/types/supabase'
 import type { ImportantDate } from '../types'
 
@@ -16,7 +17,7 @@ function toImportantDate(row: DateRow): ImportantDate {
   }
 }
 
-function toInsert(payload: Omit<ImportantDate, 'id'>): DateInsert {
+function toInsert(payload: Omit<ImportantDate, 'id'>): Omit<DateInsert, 'couple_id'> {
   return {
     label: payload.label,
     date: payload.date,
@@ -81,9 +82,12 @@ export async function createDate(
     return demoDates.insert({ ...payload, id: crypto.randomUUID() })
   }
 
+  const coupleId = await getMyCoupleId()
+  if (!coupleId) throw new Error('You need to be in a couple to add a date.')
+
   const { data, error } = await supabase
     .from('important_dates')
-    .insert(toInsert(payload))
+    .insert({ ...toInsert(payload), couple_id: coupleId })
     .select()
     .single()
   if (error) throw error

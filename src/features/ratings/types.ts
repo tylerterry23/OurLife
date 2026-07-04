@@ -4,8 +4,8 @@ export interface Rating {
   id: string
   category: RatingCategory
   title: string
-  tylerScore: number | null
-  laurenScore: number | null
+  myScore: number | null
+  partnerScore: number | null
   note: string | null
   createdAt: string
 }

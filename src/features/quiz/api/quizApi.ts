@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import { createDemoCollection } from '@/lib/demoStore'
+import { getMyCoupleId } from '@/lib/coupleContext'
 import type { Database } from '@/types/supabase'
 import type { QuizQuestion } from '../types'
 
@@ -18,7 +19,7 @@ function toQuizQuestion(row: QuizRow): QuizQuestion {
   }
 }
 
-function toInsert(payload: Omit<QuizQuestion, 'id' | 'createdAt'>): QuizInsert {
+function toInsert(payload: Omit<QuizQuestion, 'id' | 'createdAt'>): Omit<QuizInsert, 'couple_id'> {
   return {
     asked_by: payload.askedBy,
     question: payload.question,
@@ -93,9 +94,12 @@ export async function createQuizQuestion(
     })
   }
 
+  const coupleId = await getMyCoupleId()
+  if (!coupleId) throw new Error('You need to be in a couple to add a question.')
+
   const { data, error } = await supabase
     .from('quiz_questions')
-    .insert(toInsert(payload))
+    .insert({ ...toInsert(payload), couple_id: coupleId })
     .select()
     .single()
   if (error) throw error

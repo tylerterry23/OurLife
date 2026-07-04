@@ -1,30 +1,34 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import { createDemoCollection } from '@/lib/demoStore'
+import { getMyCoupleId, getPartnerUserId } from '@/lib/coupleContext'
 import type { Database } from '@/types/supabase'
-import type { Rating } from '../types'
+import type { Rating, RatingCategory } from '../types'
 
 type RatingRow = Database['public']['Tables']['ratings']['Row']
 type RatingInsert = Database['public']['Tables']['ratings']['Insert']
 type RatingUpdate = Database['public']['Tables']['ratings']['Update']
+type ScoreRow = Database['public']['Tables']['rating_scores']['Row']
 
-function toRating(row: RatingRow): Rating {
+type RatingWithScores = RatingRow & { rating_scores: Pick<ScoreRow, 'user_id' | 'score'>[] }
+
+function toRating(row: RatingWithScores, myUserId: string): Rating {
+  const mine = row.rating_scores.find((s) => s.user_id === myUserId)
+  const partner = row.rating_scores.find((s) => s.user_id !== myUserId)
   return {
     id: row.id,
-    category: row.category,
+    category: row.category as RatingCategory,
     title: row.title,
-    tylerScore: row.tyler_score,
-    laurenScore: row.lauren_score,
+    myScore: mine?.score ?? null,
+    partnerScore: partner?.score ?? null,
     note: row.note,
     createdAt: row.created_at,
   }
 }
 
-function toInsert(payload: Omit<Rating, 'id' | 'createdAt'>): RatingInsert {
+function toInsert(payload: Pick<Rating, 'category' | 'title' | 'note'>): Omit<RatingInsert, 'couple_id'> {
   return {
     category: payload.category,
     title: payload.title,
-    tyler_score: payload.tylerScore,
-    lauren_score: payload.laurenScore,
     note: payload.note,
   }
 }
@@ -33,9 +37,6 @@ function toUpdate(payload: Partial<Rating>): RatingUpdate {
   const update: RatingUpdate = {}
   if (payload.category !== undefined) update.category = payload.category
   if (payload.title !== undefined) update.title = payload.title
-  if (payload.tylerScore !== undefined) update.tyler_score = payload.tylerScore
-  if (payload.laurenScore !== undefined)
-    update.lauren_score = payload.laurenScore
   if (payload.note !== undefined) update.note = payload.note
   return update
 }
@@ -45,8 +46,8 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
     id: crypto.randomUUID(),
     category: 'movie',
     title: 'Everything Everywhere All at Once',
-    tylerScore: 9.5,
-    laurenScore: 10,
+    myScore: 9.5,
+    partnerScore: 10,
     note: 'Still thinking about the rock scene.',
     createdAt: new Date('2025-03-14T00:00:00Z').toISOString(),
   },
@@ -54,8 +55,8 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
     id: crypto.randomUUID(),
     category: 'restaurant',
     title: 'Corner ramen spot',
-    tylerScore: 8,
-    laurenScore: 9,
+    myScore: 8,
+    partnerScore: 9,
     note: 'Go back for the spicy miso.',
     createdAt: new Date('2025-05-02T00:00:00Z').toISOString(),
   },
@@ -63,22 +64,30 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
     id: crypto.randomUUID(),
     category: 'city',
     title: 'Portland',
-    tylerScore: 7.5,
-    laurenScore: 8.5,
+    myScore: 7.5,
+    partnerScore: 8.5,
     note: null,
     createdAt: new Date('2025-06-20T00:00:00Z').toISOString(),
   },
 ])
 
+async function getMyUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser()
+  if (error) throw error
+  if (!data.user) throw new Error('Not signed in.')
+  return data.user.id
+}
+
 export async function getRatings(): Promise<Rating[]> {
   if (!isSupabaseConfigured) return demoRatings.list()
 
+  const myUserId = await getMyUserId()
   const { data, error } = await supabase
     .from('ratings')
-    .select('*')
+    .select('*, rating_scores(user_id, score)')
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data.map(toRating)
+  return data.map((row) => toRating(row, myUserId))
 }
 
 export async function getRating(id: string): Promise<Rating> {
@@ -88,13 +97,14 @@ export async function getRating(id: string): Promise<Rating> {
     return rating
   }
 
+  const myUserId = await getMyUserId()
   const { data, error } = await supabase
     .from('ratings')
-    .select('*')
+    .select('*, rating_scores(user_id, score)')
     .eq('id', id)
     .single()
   if (error) throw error
-  return toRating(data)
+  return toRating(data, myUserId)
 }
 
 export async function createRating(
@@ -108,13 +118,30 @@ export async function createRating(
     })
   }
 
-  const { data, error } = await supabase
+  const [coupleId, myUserId] = await Promise.all([getMyCoupleId(), getMyUserId()])
+  if (!coupleId) throw new Error('You need to be in a couple to add a rating.')
+  const partnerUserId = await getPartnerUserId(myUserId)
+
+  const { data: ratingRow, error } = await supabase
     .from('ratings')
-    .insert(toInsert(payload))
+    .insert({ ...toInsert(payload), couple_id: coupleId })
     .select()
     .single()
   if (error) throw error
-  return toRating(data)
+
+  const scoreRows = [
+    { rating_id: ratingRow.id, user_id: myUserId, score: payload.myScore },
+    ...(partnerUserId
+      ? [{ rating_id: ratingRow.id, user_id: partnerUserId, score: payload.partnerScore }]
+      : []),
+  ]
+  const { data: scores, error: scoreError } = await supabase
+    .from('rating_scores')
+    .insert(scoreRows)
+    .select('user_id, score')
+  if (scoreError) throw scoreError
+
+  return toRating({ ...ratingRow, rating_scores: scores }, myUserId)
 }
 
 export async function updateRating(
@@ -123,14 +150,38 @@ export async function updateRating(
 ): Promise<Rating> {
   if (!isSupabaseConfigured) return demoRatings.update(id, payload)
 
-  const { data, error } = await supabase
-    .from('ratings')
-    .update(toUpdate(payload))
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) throw error
-  return toRating(data)
+  const myUserId = await getMyUserId()
+
+  const ratingUpdate = toUpdate(payload)
+  if (Object.keys(ratingUpdate).length > 0) {
+    const { error } = await supabase.from('ratings').update(ratingUpdate).eq('id', id)
+    if (error) throw error
+  }
+
+  if (payload.myScore !== undefined) {
+    const { error } = await supabase
+      .from('rating_scores')
+      .upsert(
+        { rating_id: id, user_id: myUserId, score: payload.myScore },
+        { onConflict: 'rating_id,user_id' }
+      )
+    if (error) throw error
+  }
+
+  if (payload.partnerScore !== undefined) {
+    const partnerUserId = await getPartnerUserId(myUserId)
+    if (partnerUserId) {
+      const { error } = await supabase
+        .from('rating_scores')
+        .upsert(
+          { rating_id: id, user_id: partnerUserId, score: payload.partnerScore },
+          { onConflict: 'rating_id,user_id' }
+        )
+      if (error) throw error
+    }
+  }
+
+  return getRating(id)
 }
 
 export async function deleteRating(id: string): Promise<void> {
