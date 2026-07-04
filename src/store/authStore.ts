@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
+import { clearCoupleCache } from '@/lib/coupleContext'
 import type { User } from '@supabase/supabase-js'
 
 interface AuthState {
@@ -79,6 +80,9 @@ export const useAuthStore = create<AuthState>()(
         return { needsEmailConfirmation: true }
       },
       logout: async () => {
+        // Drop the in-memory couple-member cache so a subsequent login as a
+        // different account doesn't read a stale partner id.
+        clearCoupleCache()
         if (!isSupabaseConfigured) {
           set({ user: null })
           return

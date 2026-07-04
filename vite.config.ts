@@ -12,19 +12,39 @@ export default defineConfig({
       manifest: {
         name: 'OurLife',
         short_name: 'OurLife',
+        description:
+          'A private shared space for the two of you — dates, ratings, wishlist, and more.',
+        id: '/',
+        start_url: '/',
+        scope: '/',
         theme_color: '#0F0D12',
         background_color: '#0F0D12',
         display: 'standalone',
+        orientation: 'portrait',
         icons: [
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'pwa-maskable-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
+            src: 'pwa-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
           },
         ],
       },
