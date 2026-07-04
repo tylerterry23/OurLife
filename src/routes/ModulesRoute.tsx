@@ -15,37 +15,37 @@ import { cn } from '@/lib/utils'
 
 const modules = [
   {
-    to: '/dates',
+    to: '/modules/dates',
     label: 'Important Dates',
     description: 'Anniversaries, birthdays, and days worth remembering.',
     icon: Calendar,
   },
   {
-    to: '/quiz',
+    to: '/modules/quiz',
     label: 'Ask Me Anything',
     description: 'Trade questions and get to know each other a little more.',
     icon: MessageCircleQuestion,
   },
   {
-    to: '/places',
+    to: '/modules/places',
     label: 'Been & Going',
     description: 'Places you’ve visited and places you want to.',
     icon: Compass,
   },
   {
-    to: '/ratings',
+    to: '/modules/ratings',
     label: 'Ratings',
     description: 'Rate movies, shows, restaurants, and cities together.',
     icon: Star,
   },
   {
-    to: '/wishlist',
+    to: '/modules/wishlist',
     label: 'Wishlist',
     description: 'Things you’re hoping for.',
     icon: Gift,
   },
   {
-    to: '/games',
+    to: '/modules/games',
     label: 'Games',
     description: 'Coming soon.',
     icon: Gamepad2,

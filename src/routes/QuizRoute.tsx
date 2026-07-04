@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { ModulePageHeader } from '@/components/layout/ModulePageHeader'
 import { QuizForm } from '@/features/quiz/components/QuizForm'
 import { QuizList } from '@/features/quiz/components/QuizList'
 
@@ -17,25 +18,25 @@ export function QuizRoute() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl font-medium text-parchment">
-          Ask Me Anything
-        </h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4" />
-              Ask
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>New question</DialogTitle>
-            </DialogHeader>
-            <QuizForm onDone={() => setOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <ModulePageHeader
+        title="Ask Me Anything"
+        action={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4" />
+                Ask
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>New question</DialogTitle>
+              </DialogHeader>
+              <QuizForm onDone={() => setOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <QuizList />
     </div>

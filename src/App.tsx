@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { DatesRoute } from '@/routes/DatesRoute'
 import { GamesRoute } from '@/routes/GamesRoute'
 import { HomeRoute } from '@/routes/HomeRoute'
+import { JoinRoute } from '@/routes/JoinRoute'
 import { LoginRoute } from '@/routes/LoginRoute'
 import { ModulesRoute } from '@/routes/ModulesRoute'
 import { PlacesRoute } from '@/routes/PlacesRoute'
@@ -42,6 +43,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginRoute />} />
+          <Route path="/join/:code" element={<JoinRoute />} />
           <Route
             element={
               <RequireAuth>
@@ -51,14 +53,14 @@ function App() {
           >
             <Route path="/" element={<HomeRoute />} />
             <Route path="/modules" element={<ModulesRoute />} />
-            <Route path="/dates" element={<DatesRoute />} />
-            <Route path="/quiz" element={<QuizRoute />} />
-            <Route path="/places" element={<PlacesRoute />} />
-            <Route path="/ratings" element={<RatingsRoute />} />
-            <Route path="/wishlist" element={<WishlistRoute />} />
-            <Route path="/games" element={<GamesRoute />} />
+            <Route path="/modules/dates" element={<DatesRoute />} />
+            <Route path="/modules/quiz" element={<QuizRoute />} />
+            <Route path="/modules/places" element={<PlacesRoute />} />
+            <Route path="/modules/ratings" element={<RatingsRoute />} />
+            <Route path="/modules/wishlist" element={<WishlistRoute />} />
+            <Route path="/modules/games" element={<GamesRoute />} />
             <Route path="/profile" element={<ProfileRoute />} />
-            <Route path="/settings" element={<SettingsRoute />} />
+            <Route path="/profile/settings" element={<SettingsRoute />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

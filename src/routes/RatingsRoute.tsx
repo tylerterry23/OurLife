@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { ModulePageHeader } from '@/components/layout/ModulePageHeader'
 import { RatingForm } from '@/features/ratings/components/RatingForm'
 import { RatingList } from '@/features/ratings/components/RatingList'
 
@@ -17,25 +18,25 @@ export function RatingsRoute() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl font-medium text-parchment">
-          Ratings
-        </h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4" />
-              Add
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>New rating</DialogTitle>
-            </DialogHeader>
-            <RatingForm onDone={() => setOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <ModulePageHeader
+        title="Ratings"
+        action={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4" />
+                Add
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>New rating</DialogTitle>
+              </DialogHeader>
+              <RatingForm onDone={() => setOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <RatingList />
     </div>

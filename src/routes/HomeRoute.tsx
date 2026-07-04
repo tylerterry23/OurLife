@@ -51,7 +51,7 @@ export function HomeRoute() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link to="/dates">
+        <Link to="/modules/dates">
           <Card className="h-full transition-colors hover:border-wine-bright/60">
             <CardHeader className="flex flex-row items-center gap-2 space-y-0">
               <Calendar className="h-5 w-5 text-gold" />
@@ -79,7 +79,7 @@ export function HomeRoute() {
           </Card>
         </Link>
 
-        <Link to="/quiz">
+        <Link to="/modules/quiz">
           <Card className="h-full transition-colors hover:border-wine-bright/60">
             <CardHeader className="flex flex-row items-center gap-2 space-y-0">
               <MessageCircleQuestion className="h-5 w-5 text-gold" />
@@ -99,7 +99,7 @@ export function HomeRoute() {
           </Card>
         </Link>
 
-        <Link to="/wishlist">
+        <Link to="/modules/wishlist">
           <Card className="h-full transition-colors hover:border-wine-bright/60">
             <CardHeader className="flex flex-row items-center gap-2 space-y-0">
               <Gift className="h-5 w-5 text-gold" />
