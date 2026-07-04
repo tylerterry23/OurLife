@@ -60,10 +60,14 @@ export const useAuthStore = create<AuthState>()(
         // display_name / username go into user metadata so the
         // handle_new_user DB trigger can build the profile row at signup
         // time — this is what makes them survive email confirmation.
+        // emailRedirectTo is passed explicitly (not left to the project's
+        // Site URL default) so it's always correct regardless of what
+        // that's configured to.
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            emailRedirectTo: window.location.origin,
             data: {
               display_name: displayName,
               username: username || null,
@@ -71,6 +75,17 @@ export const useAuthStore = create<AuthState>()(
           },
         })
         if (error) throw error
+
+        // Supabase returns a decoy user with an empty identities array
+        // (no error, no real email sent) when the address is already
+        // registered — this is deliberate anti-enumeration behavior, not
+        // a bug. Surface it as a clear "log in instead" rather than
+        // falsely claiming a confirmation email went out.
+        if (data.user && data.user.identities?.length === 0) {
+          throw new Error(
+            'An account with that email already exists. Try signing in instead.'
+          )
+        }
 
         if (data.session) {
           set({ user: data.user })
