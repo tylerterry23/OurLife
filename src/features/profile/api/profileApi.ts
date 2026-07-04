@@ -93,3 +93,10 @@ export async function uploadAvatar(file: File): Promise<string> {
 
   return publicUrl
 }
+
+export async function deleteMyAccount(): Promise<void> {
+  if (!isSupabaseConfigured) return
+
+  const { error } = await supabase.rpc('delete_my_account')
+  if (error) throw error
+}

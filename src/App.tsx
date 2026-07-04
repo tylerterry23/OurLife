@@ -15,6 +15,7 @@ import { ProfileRoute } from '@/routes/ProfileRoute'
 import { QuizRoute } from '@/routes/QuizRoute'
 import { RatingsRoute } from '@/routes/RatingsRoute'
 import { SettingsRoute } from '@/routes/SettingsRoute'
+import { SignupRoute } from '@/routes/SignupRoute'
 import { WishlistRoute } from '@/routes/WishlistRoute'
 
 const queryClient = new QueryClient()
@@ -43,6 +44,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginRoute />} />
+          <Route path="/signup" element={<SignupRoute />} />
           <Route path="/join/:code" element={<JoinRoute />} />
           <Route
             element={

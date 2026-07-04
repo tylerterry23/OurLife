@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Bell,
   Check,
@@ -7,6 +7,7 @@ import {
   ChevronRight,
   LogOut,
   Palette,
+  Trash2,
   UserPlus,
   UserX,
   X,
@@ -14,9 +15,19 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { QrCode } from '@/components/QrCode'
+import { isSupabaseConfigured } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import {
@@ -27,6 +38,7 @@ import {
   useLeaveCouple,
   useMyInvites,
 } from '@/features/couple/hooks/useCouple'
+import { useDeleteAccount } from '@/features/profile/hooks/useProfile'
 
 function SettingsRow({
   icon: Icon,
@@ -71,6 +83,7 @@ function SettingsRow({
 }
 
 export function SettingsRoute() {
+  const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout)
   const { displayNames } = useSettingsStore()
   const { data: coupleStatus } = useCoupleStatus()
@@ -79,12 +92,29 @@ export function SettingsRoute() {
   const acceptInvite = useAcceptInvite()
   const declineInvite = useDeclineInvite()
   const leaveCouple = useLeaveCouple()
+  const deleteAccount = useDeleteAccount()
 
   const [showConnectForm, setShowConnectForm] = useState(false)
   const [emailInput, setEmailInput] = useState('')
   const [sentCode, setSentCode] = useState<string | null>(null)
   const [joinCodeInput, setJoinCodeInput] = useState('')
   const [joinError, setJoinError] = useState<string | null>(null)
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function handleDeleteAccount() {
+    setDeleteError(null)
+    try {
+      await deleteAccount.mutateAsync()
+      await logout()
+      navigate('/login', { replace: true })
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Failed to delete account.'
+      )
+    }
+  }
 
   async function handleInvite(e: FormEvent) {
     e.preventDefault()
@@ -242,6 +272,82 @@ export function SettingsRoute() {
         />
 
         <SettingsRow icon={LogOut} label="Log out" onClick={() => logout()} />
+      </Card>
+
+      <Card className="border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-lg text-destructive">
+            Danger Zone
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Dialog
+            open={deleteDialogOpen}
+            onOpenChange={(open) => {
+              setDeleteDialogOpen(open)
+              if (!open) {
+                setDeleteConfirmInput('')
+                setDeleteError(null)
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={!isSupabaseConfigured}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete account
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete your account?</DialogTitle>
+                <DialogDescription>
+                  This permanently deletes your account, profile, and any
+                  data only you can see. Shared couple content (ratings,
+                  dates, wishlist, etc.) stays visible to your partner. This
+                  cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                <p className="text-sm text-parchment">
+                  Type <span className="font-mono text-destructive">DELETE</span>{' '}
+                  to confirm.
+                </p>
+                <Input
+                  value={deleteConfirmInput}
+                  onChange={(e) => setDeleteConfirmInput(e.target.value)}
+                  placeholder="DELETE"
+                />
+                {deleteError && (
+                  <p className="text-sm text-destructive">{deleteError}</p>
+                )}
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={
+                    deleteConfirmInput !== 'DELETE' || deleteAccount.isPending
+                  }
+                  onClick={handleDeleteAccount}
+                >
+                  {deleteAccount.isPending
+                    ? 'Deleting...'
+                    : 'Permanently delete my account'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          {!isSupabaseConfigured && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Unavailable in demo mode.
+            </p>
+          )}
+        </CardContent>
       </Card>
     </div>
   )

@@ -7,6 +7,10 @@ interface AuthState {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  signUp: (
+    email: string,
+    password: string
+  ) => Promise<{ needsEmailConfirmation: boolean }>
   logout: () => Promise<void>
   initSession: () => Promise<void>
 }
@@ -41,6 +45,25 @@ export const useAuthStore = create<AuthState>()(
         })
         if (error) throw error
         set({ user: data.user })
+      },
+      signUp: async (email, password) => {
+        if (!isSupabaseConfigured) {
+          set({ user: createDemoUser(email || 'demo@ourlife.app') })
+          return { needsEmailConfirmation: false }
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        })
+        if (error) throw error
+
+        if (data.session) {
+          set({ user: data.user })
+          return { needsEmailConfirmation: false }
+        }
+
+        return { needsEmailConfirmation: true }
       },
       logout: async () => {
         if (!isSupabaseConfigured) {

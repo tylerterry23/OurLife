@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { getMyProfile, updateMyProfile, uploadAvatar } from '../api/profileApi'
+import {
+  deleteMyAccount,
+  getMyProfile,
+  updateMyProfile,
+  uploadAvatar,
+} from '../api/profileApi'
 
 const profileKey = ['my-profile'] as const
 
@@ -22,4 +27,8 @@ export function useUploadAvatar() {
     mutationFn: uploadAvatar,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: profileKey }),
   })
+}
+
+export function useDeleteAccount() {
+  return useMutation({ mutationFn: deleteMyAccount })
 }

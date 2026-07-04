@@ -381,6 +381,7 @@ export type Database = {
         Args: { p_invite_code: string }
         Returns: undefined
       }
+      delete_my_account: { Args: never; Returns: undefined }
       get_my_couple_id: { Args: never; Returns: string }
       leave_couple: { Args: never; Returns: undefined }
     }
