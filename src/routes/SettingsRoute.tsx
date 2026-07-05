@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Palette,
   Trash2,
   UserPlus,
   UserX,
@@ -14,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ThemePicker } from '@/components/ThemePicker'
 import {
   Dialog,
   DialogContent,
@@ -121,13 +121,16 @@ export function SettingsRoute() {
         </h1>
       </div>
 
-      <Card className="divide-y divide-line overflow-hidden">
-        <SettingsRow
-          icon={Palette}
-          label="App Theme"
-          trailing={<Badge variant="outline">coming soon</Badge>}
-        />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Appearance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ThemePicker />
+        </CardContent>
+      </Card>
 
+      <Card className="divide-y divide-line overflow-hidden">
         {inCouple ? (
           <SettingsRow
             icon={UserX}

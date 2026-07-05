@@ -4,7 +4,9 @@
 
 @layer base {
   :root {
-    /* OurLife brand tokens — raw values, used directly (not through hsl()) */
+    /* Fallback for first paint before the theme script (in index.html) sets
+       data-theme/data-mode on <html> — matches OurLife dark exactly so
+       there's no flash of different colors. */
     --ink: #0f0d12;
     --ink-raised: #17141b;
     --parchment: #efe7dd;
@@ -14,37 +16,336 @@
     --gold: #c9a667;
     --line: rgba(239, 231, 221, 0.12);
 
-    /* shadcn/ui semantic slots, re-themed from the tokens above (HSL triplets,
-       consumed as hsl(var(--x)) so shadcn components stay untouched) */
-    --background: 264 16% 6%; /* ink */
-    --foreground: 33 36% 90%; /* parchment */
-
-    --card: 266 15% 9%; /* ink-raised */
-    --card-foreground: 33 36% 90%; /* parchment */
-
-    --popover: 266 15% 9%; /* ink-raised */
-    --popover-foreground: 33 36% 90%; /* parchment */
-
-    --primary: 341 40% 39%; /* wine */
-    --primary-foreground: 33 36% 90%; /* parchment */
-
-    --secondary: 266 15% 9%; /* ink-raised */
-    --secondary-foreground: 33 36% 90%; /* parchment */
-
-    --muted: 266 15% 9%; /* ink-raised */
-    --muted-foreground: 34 13% 68%; /* parchment-dim */
-
-    --accent: 39 48% 60%; /* gold */
-    --accent-foreground: 264 16% 6%; /* ink */
-
+    --background: 264 16% 6%;
+    --foreground: 33 36% 90%;
+    --card: 266 15% 9%;
+    --card-foreground: 33 36% 90%;
+    --popover: 266 15% 9%;
+    --popover-foreground: 33 36% 90%;
+    --primary: 341 40% 39%;
+    --primary-foreground: 33 36% 90%;
+    --secondary: 266 15% 9%;
+    --secondary-foreground: 33 36% 90%;
+    --muted: 266 15% 9%;
+    --muted-foreground: 34 13% 68%;
+    --accent: 39 48% 60%;
+    --accent-foreground: 264 16% 6%;
     --destructive: 0 63% 41%;
-    --destructive-foreground: 33 36% 90%; /* parchment */
-
+    --destructive-foreground: 0 0% 98%;
     --border: var(--line);
     --input: var(--line);
-    --ring: 343 45% 55%; /* wine-bright */
+    --ring: 343 45% 55%;
 
     --radius: 0.5rem;
+  }
+
+  /* ============================================================
+     Theme palettes — each pairs a light + dark variant. Selected via
+     data-theme (palette) and data-mode (light/dark), both set on <html>
+     by src/lib/theme.ts. Every component already reads these CSS custom
+     properties (bg-ink, text-parchment, bg-primary, etc. in
+     tailwind.config.js), so no component changes are needed to support
+     switching themes.
+     ============================================================ */
+
+  html[data-theme='ourlife'][data-mode='dark'] {
+    --ink: #0f0d12;
+    --ink-raised: #17141b;
+    --parchment: #efe7dd;
+    --parchment-dim: #b8afa3;
+    --wine: #8a3b54;
+    --wine-bright: #c15a78;
+    --gold: #c9a667;
+    --line: rgba(239, 231, 221, 0.12);
+    --background: 264 16% 6%;
+    --foreground: 33 36% 90%;
+    --card: 266 15% 9%;
+    --card-foreground: 33 36% 90%;
+    --popover: 266 15% 9%;
+    --popover-foreground: 33 36% 90%;
+    --primary: 341 40% 39%;
+    --primary-foreground: 33 36% 90%;
+    --secondary: 266 15% 9%;
+    --secondary-foreground: 33 36% 90%;
+    --muted: 266 15% 9%;
+    --muted-foreground: 34 13% 68%;
+    --accent: 39 48% 60%;
+    --accent-foreground: 264 16% 6%;
+    --destructive: 0 63% 41%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 343 45% 55%;
+  }
+
+  html[data-theme='ourlife'][data-mode='light'] {
+    --ink: #faf6ef;
+    --ink-raised: #f1ebe1;
+    --parchment: #2b2430;
+    --parchment-dim: #6b6178;
+    --wine: #8a3b54;
+    --wine-bright: #733046;
+    --gold: #96702f;
+    --line: rgba(43, 36, 48, 0.12);
+    --background: 38 52% 96%;
+    --foreground: 275 14% 16%;
+    --card: 37 36% 91%;
+    --card-foreground: 275 14% 16%;
+    --popover: 37 36% 91%;
+    --popover-foreground: 275 14% 16%;
+    --primary: 341 40% 39%;
+    --primary-foreground: 275 14% 16%;
+    --secondary: 37 36% 91%;
+    --secondary-foreground: 275 14% 16%;
+    --muted: 37 36% 91%;
+    --muted-foreground: 266 11% 43%;
+    --accent: 38 52% 39%;
+    --accent-foreground: 38 52% 96%;
+    --destructive: 0 68% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 340 41% 32%;
+  }
+
+  html[data-theme='hotpink'][data-mode='dark'] {
+    --ink: #120a10;
+    --ink-raised: #1e0f19;
+    --parchment: #fbeaf3;
+    --parchment-dim: #c9a0b8;
+    --wine: #ff2d78;
+    --wine-bright: #ff5b95;
+    --gold: #ffd23f;
+    --line: rgba(251, 234, 243, 0.14);
+    --background: 315 29% 5%;
+    --foreground: 328 68% 95%;
+    --card: 320 33% 9%;
+    --card-foreground: 328 68% 95%;
+    --popover: 320 33% 9%;
+    --popover-foreground: 328 68% 95%;
+    --primary: 339 100% 59%;
+    --primary-foreground: 328 68% 95%;
+    --secondary: 320 33% 9%;
+    --secondary-foreground: 328 68% 95%;
+    --muted: 320 33% 9%;
+    --muted-foreground: 325 28% 71%;
+    --accent: 46 100% 62%;
+    --accent-foreground: 315 29% 5%;
+    --destructive: 0 63% 41%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 339 100% 68%;
+  }
+
+  html[data-theme='hotpink'][data-mode='light'] {
+    --ink: #fff5fa;
+    --ink-raised: #ffe9f4;
+    --parchment: #2b0f1e;
+    --parchment-dim: #7a4d64;
+    --wine: #e0155f;
+    --wine-bright: #c2124f;
+    --gold: #b8860b;
+    --line: rgba(43, 15, 30, 0.12);
+    --background: 330 100% 98%;
+    --foreground: 328 48% 11%;
+    --card: 330 100% 96%;
+    --card-foreground: 328 48% 11%;
+    --popover: 330 100% 96%;
+    --popover-foreground: 328 48% 11%;
+    --primary: 338 83% 48%;
+    --primary-foreground: 328 48% 11%;
+    --secondary: 330 100% 96%;
+    --secondary-foreground: 328 48% 11%;
+    --muted: 330 100% 96%;
+    --muted-foreground: 329 23% 39%;
+    --accent: 43 89% 38%;
+    --accent-foreground: 330 100% 98%;
+    --destructive: 0 68% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 339 83% 42%;
+  }
+
+  html[data-theme='monochrome'][data-mode='dark'] {
+    --ink: #0a0a0a;
+    --ink-raised: #171717;
+    --parchment: #f5f5f5;
+    --parchment-dim: #a3a3a3;
+    --wine: #e5e5e5;
+    --wine-bright: #ffffff;
+    --gold: #a3a3a3;
+    --line: rgba(245, 245, 245, 0.12);
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 0 0% 90%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 9%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 64%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 63% 41%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 0 0% 100%;
+  }
+
+  html[data-theme='monochrome'][data-mode='light'] {
+    --ink: #fafafa;
+    --ink-raised: #f0f0f0;
+    --parchment: #171717;
+    --parchment-dim: #6b6b6b;
+    --wine: #171717;
+    --wine-bright: #000000;
+    --gold: #525252;
+    --line: rgba(23, 23, 23, 0.12);
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 94%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 94%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 0 0% 32%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 68% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 0 0% 0%;
+  }
+
+  html[data-theme='ocean'][data-mode='dark'] {
+    --ink: #0a1420;
+    --ink-raised: #122132;
+    --parchment: #e8f4f8;
+    --parchment-dim: #9db3c2;
+    --wine: #1b7f9e;
+    --wine-bright: #2a9fc4;
+    --gold: #e0a458;
+    --line: rgba(232, 244, 248, 0.12);
+    --background: 213 52% 8%;
+    --foreground: 195 53% 94%;
+    --card: 212 47% 13%;
+    --card-foreground: 195 53% 94%;
+    --popover: 212 47% 13%;
+    --popover-foreground: 195 53% 94%;
+    --primary: 194 71% 36%;
+    --primary-foreground: 195 53% 94%;
+    --secondary: 212 47% 13%;
+    --secondary-foreground: 195 53% 94%;
+    --muted: 212 47% 13%;
+    --muted-foreground: 204 23% 69%;
+    --accent: 34 69% 61%;
+    --accent-foreground: 213 52% 8%;
+    --destructive: 0 63% 41%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 194 65% 47%;
+  }
+
+  html[data-theme='ocean'][data-mode='light'] {
+    --ink: #f4fafc;
+    --ink-raised: #e5f1f5;
+    --parchment: #0d2733;
+    --parchment-dim: #4f7182;
+    --wine: #0e7490;
+    --wine-bright: #0a5a70;
+    --gold: #b5792c;
+    --line: rgba(13, 39, 51, 0.12);
+    --background: 195 57% 97%;
+    --foreground: 199 59% 13%;
+    --card: 195 44% 93%;
+    --card-foreground: 199 59% 13%;
+    --popover: 195 44% 93%;
+    --popover-foreground: 199 59% 13%;
+    --primary: 193 82% 31%;
+    --primary-foreground: 199 59% 13%;
+    --secondary: 195 44% 93%;
+    --secondary-foreground: 199 59% 13%;
+    --muted: 195 44% 93%;
+    --muted-foreground: 200 24% 41%;
+    --accent: 34 61% 44%;
+    --accent-foreground: 195 57% 97%;
+    --destructive: 0 68% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 193 84% 24%;
+  }
+
+  html[data-theme='sunset'][data-mode='dark'] {
+    --ink: #1a0f0d;
+    --ink-raised: #251611;
+    --parchment: #fdece3;
+    --parchment-dim: #cfa89a;
+    --wine: #e2572f;
+    --wine-bright: #f2703f;
+    --gold: #f2b544;
+    --line: rgba(253, 236, 227, 0.13);
+    --background: 9 33% 8%;
+    --foreground: 21 87% 94%;
+    --card: 15 37% 11%;
+    --card-foreground: 21 87% 94%;
+    --popover: 15 37% 11%;
+    --popover-foreground: 21 87% 94%;
+    --primary: 13 76% 54%;
+    --primary-foreground: 21 87% 94%;
+    --secondary: 15 37% 11%;
+    --secondary-foreground: 21 87% 94%;
+    --muted: 15 37% 11%;
+    --muted-foreground: 16 36% 71%;
+    --accent: 39 87% 61%;
+    --accent-foreground: 9 33% 8%;
+    --destructive: 0 63% 41%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 16 87% 60%;
+  }
+
+  html[data-theme='sunset'][data-mode='light'] {
+    --ink: #fff8f4;
+    --ink-raised: #ffece1;
+    --parchment: #3a1a10;
+    --parchment-dim: #8a5c4a;
+    --wine: #c8451f;
+    --wine-bright: #a83a19;
+    --gold: #b9822a;
+    --line: rgba(58, 26, 16, 0.12);
+    --background: 22 100% 98%;
+    --foreground: 14 57% 15%;
+    --card: 22 100% 94%;
+    --card-foreground: 14 57% 15%;
+    --popover: 22 100% 94%;
+    --popover-foreground: 14 57% 15%;
+    --primary: 13 73% 45%;
+    --primary-foreground: 14 57% 15%;
+    --secondary: 22 100% 94%;
+    --secondary-foreground: 14 57% 15%;
+    --muted: 22 100% 94%;
+    --muted-foreground: 17 30% 42%;
+    --accent: 37 63% 45%;
+    --accent-foreground: 22 100% 98%;
+    --destructive: 0 68% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 14 74% 38%;
   }
 }
 

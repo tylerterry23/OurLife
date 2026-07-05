@@ -15,6 +15,35 @@
     />
     <meta name="theme-color" content="#0F0D12" />
     <title>OurLife</title>
+    <script>
+      // Applied before first paint so switching themes/mode never flashes
+      // the previous one. Mirrors src/lib/theme.ts's resolveMode/applyTheme
+      // — kept in sync with it by hand since this must run standalone,
+      // before any module has loaded.
+      ;(function () {
+        try {
+          var raw = localStorage.getItem('ourlife-theme')
+          var themeName = 'ourlife'
+          var mode = 'system'
+          if (raw) {
+            var parsed = JSON.parse(raw).state
+            themeName = parsed.themeName || themeName
+            mode = parsed.mode || mode
+          }
+          var resolved =
+            mode === 'system'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : mode
+          document.documentElement.setAttribute('data-theme', themeName)
+          document.documentElement.setAttribute('data-mode', resolved)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'ourlife')
+          document.documentElement.setAttribute('data-mode', 'dark')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
