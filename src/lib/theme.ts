@@ -24,9 +24,9 @@ export const themes: Record<ThemeName, ThemeSwatch> = {
   },
   hotpink: {
     label: 'Hot Pink',
-    description: 'Bold and unapologetic.',
-    dark: { bg: '#120a10', fg: '#fbeaf3', primary: '#ff2d78', accent: '#ffd23f' },
-    light: { bg: '#fff5fa', fg: '#2b0f1e', primary: '#e0155f', accent: '#b8860b' },
+    description: 'Bold pink with an electric cyan pop.',
+    dark: { bg: '#120a10', fg: '#fbeaf3', primary: '#ff2d78', accent: '#22d3ee' },
+    light: { bg: '#fff5fa', fg: '#2b0f1e', primary: '#e0155f', accent: '#0891b2' },
   },
   monochrome: {
     label: 'Monochrome',
@@ -36,15 +36,15 @@ export const themes: Record<ThemeName, ThemeSwatch> = {
   },
   ocean: {
     label: 'Ocean',
-    description: 'Calm teal and blue, warm sand accents.',
-    dark: { bg: '#0a1420', fg: '#e8f4f8', primary: '#1b7f9e', accent: '#e0a458' },
-    light: { bg: '#f4fafc', fg: '#0d2733', primary: '#0e7490', accent: '#b5792c' },
+    description: 'Calm teal and blue with a seafoam accent.',
+    dark: { bg: '#0a1420', fg: '#e8f4f8', primary: '#1b7f9e', accent: '#5eead4' },
+    light: { bg: '#f4fafc', fg: '#0d2733', primary: '#0e7490', accent: '#0d9488' },
   },
   sunset: {
     label: 'Sunset',
-    description: 'Warm coral and peach.',
-    dark: { bg: '#1a0f0d', fg: '#fdece3', primary: '#e2572f', accent: '#f2b544' },
-    light: { bg: '#fff8f4', fg: '#3a1a10', primary: '#c8451f', accent: '#b9822a' },
+    description: 'Warm coral and peach with a rose pop.',
+    dark: { bg: '#1a0f0d', fg: '#fdece3', primary: '#e2572f', accent: '#fb7185' },
+    light: { bg: '#fff8f4', fg: '#3a1a10', primary: '#c8451f', accent: '#be123c' },
   },
 }
 
