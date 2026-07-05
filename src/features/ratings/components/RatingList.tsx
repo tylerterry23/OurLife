@@ -4,6 +4,7 @@ import { Pencil, Star, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import {
   Dialog,
   DialogContent,
@@ -218,6 +219,7 @@ export function RatingList() {
   // scoring mode (used by a want item's "Rate it").
   const [editing, setEditing] = useState<Rating | null>(null)
   const [rateMode, setRateMode] = useState(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const counts = useMemo(() => {
     const rated = ratings?.filter((r) => r.status === 'rated').length ?? 0
@@ -325,7 +327,7 @@ export function RatingList() {
                   setRateMode(false)
                   setEditing(rating)
                 }}
-                onDelete={() => deleteRating.mutate(rating.id)}
+                onDelete={() => setPendingDeleteId(rating.id)}
               />
             ) : (
               <WantCard
@@ -339,7 +341,7 @@ export function RatingList() {
                   setRateMode(false)
                   setEditing(rating)
                 }}
-                onDelete={() => deleteRating.mutate(rating.id)}
+                onDelete={() => setPendingDeleteId(rating.id)}
               />
             )
           )}
@@ -367,6 +369,18 @@ export function RatingList() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => !open && setPendingDeleteId(null)}
+        title="Delete this rating?"
+        description="This can't be undone."
+        onConfirm={() => {
+          if (pendingDeleteId) deleteRating.mutate(pendingDeleteId)
+          setPendingDeleteId(null)
+        }}
+        isPending={deleteRating.isPending}
+      />
     </div>
   )
 }

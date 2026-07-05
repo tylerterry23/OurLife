@@ -1,19 +1,31 @@
-import { ExternalLink, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { ExternalLink, Pencil, Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
 import {
   useDeleteWishlistItem,
   useUpdateWishlistItem,
   useWishlistItems,
 } from '../hooks/useWishlist'
+import { WishlistForm } from './WishlistForm'
+import type { WishlistItem } from '../types'
 
 export function WishlistList() {
   const { data: items, isLoading, isError } = useWishlistItems()
   const updateItem = useUpdateWishlistItem()
   const deleteItem = useDeleteWishlistItem()
+  const [editing, setEditing] = useState<WishlistItem | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   if (isLoading) {
     return <p className="text-muted-foreground">Loading wishlist...</p>
@@ -42,14 +54,24 @@ export function WishlistList() {
               </Badge>
               <CardTitle className="text-xl">{item.title}</CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Delete item"
-              onClick={() => deleteItem.mutate(item.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-0.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Edit item"
+                onClick={() => setEditing(item)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Delete item"
+                onClick={() => setPendingDeleteId(item.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {item.url && (
@@ -76,6 +98,32 @@ export function WishlistList() {
           </CardContent>
         </Card>
       ))}
+
+      <Dialog
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit wishlist item</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <WishlistForm existing={editing} onDone={() => setEditing(null)} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => !open && setPendingDeleteId(null)}
+        title="Delete this item?"
+        description="This can't be undone."
+        onConfirm={() => {
+          if (pendingDeleteId) deleteItem.mutate(pendingDeleteId)
+          setPendingDeleteId(null)
+        }}
+        isPending={deleteItem.isPending}
+      />
     </div>
   )
 }

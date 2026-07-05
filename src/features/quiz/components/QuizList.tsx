@@ -4,6 +4,7 @@ import { Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Textarea } from '@/components/ui/textarea'
 import {
   useDeleteQuizQuestion,
@@ -45,6 +46,7 @@ function AnswerBox({ id }: { id: string }) {
 export function QuizList() {
   const { data: questions, isLoading, isError } = useQuizQuestions()
   const deleteQuestion = useDeleteQuizQuestion()
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   if (isLoading) {
     return <p className="text-muted-foreground">Loading questions...</p>
@@ -77,7 +79,7 @@ export function QuizList() {
               variant="ghost"
               size="icon"
               aria-label="Delete question"
-              onClick={() => deleteQuestion.mutate(q.id)}
+              onClick={() => setPendingDeleteId(q.id)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -91,6 +93,18 @@ export function QuizList() {
           </CardContent>
         </Card>
       ))}
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => !open && setPendingDeleteId(null)}
+        title="Delete this question?"
+        description="This can't be undone."
+        onConfirm={() => {
+          if (pendingDeleteId) deleteQuestion.mutate(pendingDeleteId)
+          setPendingDeleteId(null)
+        }}
+        isPending={deleteQuestion.isPending}
+      />
     </div>
   )
 }

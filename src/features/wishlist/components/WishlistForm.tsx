@@ -6,37 +6,51 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
 import { profileLabel } from '@/features/profile/api/profileApi'
-import { useCreateWishlistItem } from '../hooks/useWishlist'
+import { useCreateWishlistItem, useUpdateWishlistItem } from '../hooks/useWishlist'
+import type { WishlistItem } from '../types'
 
 interface WishlistFormProps {
+  existing?: WishlistItem
   onDone?: () => void
 }
 
-export function WishlistForm({ onDone }: WishlistFormProps) {
+export function WishlistForm({ existing, onDone }: WishlistFormProps) {
   const { data: coupleProfiles } = useCoupleProfiles()
   const meLabel = profileLabel(coupleProfiles?.me, 'You')
   const createItem = useCreateWishlistItem()
+  const updateItem = useUpdateWishlistItem()
+  const pending = createItem.isPending || updateItem.isPending
 
-  const [title, setTitle] = useState('')
-  const [url, setUrl] = useState('')
-  const [notes, setNotes] = useState('')
+  const [title, setTitle] = useState(existing?.title ?? '')
+  const [url, setUrl] = useState(existing?.url ?? '')
+  const [notes, setNotes] = useState(existing?.notes ?? '')
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
 
-    // Recorded as the logged-in user automatically.
-    await createItem.mutateAsync({
-      addedBy: meLabel,
-      title: title.trim(),
-      url: url.trim() || null,
-      notes: notes.trim() || null,
-      claimed: false,
-    })
-
-    setTitle('')
-    setUrl('')
-    setNotes('')
+    if (existing) {
+      await updateItem.mutateAsync({
+        id: existing.id,
+        payload: {
+          title: title.trim(),
+          url: url.trim() || null,
+          notes: notes.trim() || null,
+        },
+      })
+    } else {
+      // Recorded as the logged-in user automatically.
+      await createItem.mutateAsync({
+        addedBy: meLabel,
+        title: title.trim(),
+        url: url.trim() || null,
+        notes: notes.trim() || null,
+        claimed: false,
+      })
+      setTitle('')
+      setUrl('')
+      setNotes('')
+    }
     onDone?.()
   }
 
@@ -74,8 +88,8 @@ export function WishlistForm({ onDone }: WishlistFormProps) {
         />
       </div>
 
-      <Button type="submit" disabled={createItem.isPending} className="w-full">
-        {createItem.isPending ? 'Saving...' : 'Add to wishlist'}
+      <Button type="submit" disabled={pending} className="w-full">
+        {pending ? 'Saving...' : existing ? 'Save changes' : 'Add to wishlist'}
       </Button>
     </form>
   )

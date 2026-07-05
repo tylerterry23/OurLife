@@ -4,28 +4,37 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { useCreateDate } from '../hooks/useDates'
+import { useCreateDate, useUpdateDate } from '../hooks/useDates'
+import type { ImportantDate } from '../types'
 
 interface DateFormProps {
+  existing?: ImportantDate
   onDone?: () => void
 }
 
-export function DateForm({ onDone }: DateFormProps) {
+export function DateForm({ existing, onDone }: DateFormProps) {
   const createDate = useCreateDate()
+  const updateDate = useUpdateDate()
+  const pending = createDate.isPending || updateDate.isPending
 
-  const [label, setLabel] = useState('')
-  const [date, setDate] = useState('')
-  const [recurring, setRecurring] = useState(false)
+  const [label, setLabel] = useState(existing?.label ?? '')
+  const [date, setDate] = useState(existing?.date ?? '')
+  const [recurring, setRecurring] = useState(existing?.recurring ?? false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!label.trim() || !date) return
 
-    await createDate.mutateAsync({ label: label.trim(), date, recurring })
+    const payload = { label: label.trim(), date, recurring }
 
-    setLabel('')
-    setDate('')
-    setRecurring(false)
+    if (existing) {
+      await updateDate.mutateAsync({ id: existing.id, payload })
+    } else {
+      await createDate.mutateAsync(payload)
+      setLabel('')
+      setDate('')
+      setRecurring(false)
+    }
     onDone?.()
   }
 
@@ -62,8 +71,8 @@ export function DateForm({ onDone }: DateFormProps) {
         />
       </div>
 
-      <Button type="submit" disabled={createDate.isPending} className="w-full">
-        {createDate.isPending ? 'Saving...' : 'Add date'}
+      <Button type="submit" disabled={pending} className="w-full">
+        {pending ? 'Saving...' : existing ? 'Save changes' : 'Add date'}
       </Button>
     </form>
   )

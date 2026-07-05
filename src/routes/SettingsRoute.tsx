@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { ThemePicker } from '@/components/ThemePicker'
 import {
   Dialog,
@@ -84,6 +85,7 @@ export function SettingsRoute() {
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false)
 
   const inCouple = coupleStatus?.inCouple ?? false
 
@@ -165,7 +167,7 @@ export function SettingsRoute() {
             <SettingsRow
               icon={UserX}
               label={`Leave partner (${partnerLabel})`}
-              onClick={() => leaveCouple.mutate()}
+              onClick={() => setLeaveConfirmOpen(true)}
             />
           ) : (
             <SettingsRow
@@ -261,6 +263,19 @@ export function SettingsRoute() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={leaveConfirmOpen}
+        onOpenChange={setLeaveConfirmOpen}
+        title={`Leave ${partnerLabel}?`}
+        description="You'll lose access to your shared couple content until you reconnect. This can't be undone."
+        confirmLabel="Leave"
+        onConfirm={() => {
+          leaveCouple.mutate()
+          setLeaveConfirmOpen(false)
+        }}
+        isPending={leaveCouple.isPending}
+      />
     </div>
   )
 }
