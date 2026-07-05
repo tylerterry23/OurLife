@@ -2,7 +2,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import { createDemoCollection } from '@/lib/demoStore'
 import { getMyCoupleId, getPartnerUserId } from '@/lib/coupleContext'
 import type { Database } from '@/types/supabase'
-import type { Rating, RatingCategory } from '../types'
+import type { Rating, RatingCategory, RatingStatus } from '../types'
 
 type RatingRow = Database['public']['Tables']['ratings']['Row']
 type RatingInsert = Database['public']['Tables']['ratings']['Insert']
@@ -16,6 +16,7 @@ function toRating(row: RatingWithScores, myUserId: string): Rating {
   const partner = row.rating_scores.find((s) => s.user_id !== myUserId)
   return {
     id: row.id,
+    status: (row.status as RatingStatus) ?? 'rated',
     category: row.category as RatingCategory,
     title: row.title,
     myScore: mine?.score ?? null,
@@ -25,8 +26,11 @@ function toRating(row: RatingWithScores, myUserId: string): Rating {
   }
 }
 
-function toInsert(payload: Pick<Rating, 'category' | 'title' | 'note'>): Omit<RatingInsert, 'couple_id'> {
+function toInsert(
+  payload: Pick<Rating, 'status' | 'category' | 'title' | 'note'>
+): Omit<RatingInsert, 'couple_id'> {
   return {
+    status: payload.status,
     category: payload.category,
     title: payload.title,
     note: payload.note,
@@ -35,6 +39,7 @@ function toInsert(payload: Pick<Rating, 'category' | 'title' | 'note'>): Omit<Ra
 
 function toUpdate(payload: Partial<Rating>): RatingUpdate {
   const update: RatingUpdate = {}
+  if (payload.status !== undefined) update.status = payload.status
   if (payload.category !== undefined) update.category = payload.category
   if (payload.title !== undefined) update.title = payload.title
   if (payload.note !== undefined) update.note = payload.note
@@ -44,6 +49,7 @@ function toUpdate(payload: Partial<Rating>): RatingUpdate {
 const demoRatings = createDemoCollection<Rating>('ratings', [
   {
     id: crypto.randomUUID(),
+    status: 'rated',
     category: 'movie',
     title: 'Everything Everywhere All at Once',
     myScore: 9.5,
@@ -53,6 +59,7 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
   },
   {
     id: crypto.randomUUID(),
+    status: 'rated',
     category: 'restaurant',
     title: 'Corner ramen spot',
     myScore: 8,
@@ -62,12 +69,33 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
   },
   {
     id: crypto.randomUUID(),
+    status: 'rated',
     category: 'city',
     title: 'Portland',
     myScore: 7.5,
-    partnerScore: 8.5,
+    partnerScore: 5,
     note: null,
     createdAt: new Date('2025-06-20T00:00:00Z').toISOString(),
+  },
+  {
+    id: crypto.randomUUID(),
+    status: 'want',
+    category: 'movie',
+    title: 'Past Lives',
+    myScore: null,
+    partnerScore: null,
+    note: 'Everyone keeps recommending it.',
+    createdAt: new Date('2025-06-28T00:00:00Z').toISOString(),
+  },
+  {
+    id: crypto.randomUUID(),
+    status: 'want',
+    category: 'restaurant',
+    title: 'That new tapas place downtown',
+    myScore: null,
+    partnerScore: null,
+    note: null,
+    createdAt: new Date('2025-07-01T00:00:00Z').toISOString(),
   },
 ])
 

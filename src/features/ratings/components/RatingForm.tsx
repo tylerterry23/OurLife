@@ -4,50 +4,93 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
 import { profileLabel } from '@/features/profile/api/profileApi'
-import { useCreateRating } from '../hooks/useRatings'
-import type { RatingCategory } from '../types'
-
-const categories: RatingCategory[] = ['movie', 'show', 'restaurant', 'city']
+import { useCreateRating, useUpdateRating } from '../hooks/useRatings'
+import {
+  categoryLabels,
+  categoryOrder,
+  type Rating,
+  type RatingCategory,
+  type RatingStatus,
+} from '../types'
 
 interface RatingFormProps {
+  existing?: Rating
+  // Initial mode for a new item (e.g. the "want" tab's add button).
+  defaultStatus?: RatingStatus
   onDone?: () => void
 }
 
-export function RatingForm({ onDone }: RatingFormProps) {
+export function RatingForm({ existing, defaultStatus, onDone }: RatingFormProps) {
   const { data: coupleProfiles } = useCoupleProfiles()
   const meLabel = profileLabel(coupleProfiles?.me, 'You')
   const partnerLabel = profileLabel(coupleProfiles?.partner, 'Partner')
   const createRating = useCreateRating()
+  const updateRating = useUpdateRating()
+  const pending = createRating.isPending || updateRating.isPending
 
-  const [category, setCategory] = useState<RatingCategory>('movie')
-  const [title, setTitle] = useState('')
-  const [myScore, setMyScore] = useState('')
-  const [partnerScore, setPartnerScore] = useState('')
-  const [note, setNote] = useState('')
+  // defaultStatus wins when explicitly given (e.g. the "Rate it" action on a
+  // want item opens straight into scoring), otherwise fall back to the
+  // existing item's status, then to rating.
+  const [status, setStatus] = useState<RatingStatus>(
+    defaultStatus ?? existing?.status ?? 'rated'
+  )
+  const [category, setCategory] = useState<RatingCategory>(
+    existing?.category ?? 'movie'
+  )
+  const [title, setTitle] = useState(existing?.title ?? '')
+  const [myScore, setMyScore] = useState(
+    existing?.myScore != null ? String(existing.myScore) : ''
+  )
+  const [partnerScore, setPartnerScore] = useState(
+    existing?.partnerScore != null ? String(existing.partnerScore) : ''
+  )
+  const [note, setNote] = useState(existing?.note ?? '')
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
 
-    await createRating.mutateAsync({
+    const payload = {
+      status,
       category,
       title: title.trim(),
-      myScore: myScore ? Number(myScore) : null,
-      partnerScore: partnerScore ? Number(partnerScore) : null,
       note: note.trim() || null,
-    })
+      myScore: status === 'rated' && myScore ? Number(myScore) : null,
+      partnerScore:
+        status === 'rated' && partnerScore ? Number(partnerScore) : null,
+    }
 
-    setTitle('')
-    setMyScore('')
-    setPartnerScore('')
-    setNote('')
+    if (existing) {
+      await updateRating.mutateAsync({ id: existing.id, payload })
+    } else {
+      await createRating.mutateAsync(payload)
+    }
     onDone?.()
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex gap-1 rounded-full border border-line bg-ink p-1">
+        {(['rated', 'want'] as RatingStatus[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStatus(s)}
+            className={cn(
+              'flex-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+              status === s
+                ? 'bg-ink-raised text-gold'
+                : 'text-parchment-dim hover:text-parchment'
+            )}
+          >
+            {s === 'rated' ? 'Rate it' : 'Want to'}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="category">Category</Label>
         <select
@@ -56,9 +99,9 @@ export function RatingForm({ onDone }: RatingFormProps) {
           onChange={(e) => setCategory(e.target.value as RatingCategory)}
           className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {categories.map((c) => (
+          {categoryOrder.map((c) => (
             <option key={c} value={c} className="bg-card">
-              {c}
+              {categoryLabels[c]}
             </option>
           ))}
         </select>
@@ -70,39 +113,41 @@ export function RatingForm({ onDone }: RatingFormProps) {
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Everything Everywhere All at Once"
+          placeholder="e.g. Past Lives"
           required
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="myScore">{meLabel}'s score</Label>
-          <Input
-            id="myScore"
-            type="number"
-            step="0.1"
-            min={0}
-            max={10}
-            value={myScore}
-            onChange={(e) => setMyScore(e.target.value)}
-            placeholder="0-10"
-          />
+      {status === 'rated' && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="myScore">{meLabel}'s score</Label>
+            <Input
+              id="myScore"
+              type="number"
+              step="0.1"
+              min={0}
+              max={10}
+              value={myScore}
+              onChange={(e) => setMyScore(e.target.value)}
+              placeholder="0-10"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="partnerScore">{partnerLabel}'s score</Label>
+            <Input
+              id="partnerScore"
+              type="number"
+              step="0.1"
+              min={0}
+              max={10}
+              value={partnerScore}
+              onChange={(e) => setPartnerScore(e.target.value)}
+              placeholder="0-10"
+            />
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="partnerScore">{partnerLabel}'s score</Label>
-          <Input
-            id="partnerScore"
-            type="number"
-            step="0.1"
-            min={0}
-            max={10}
-            value={partnerScore}
-            onChange={(e) => setPartnerScore(e.target.value)}
-            placeholder="0-10"
-          />
-        </div>
-      </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="note">Note</Label>
@@ -110,16 +155,20 @@ export function RatingForm({ onDone }: RatingFormProps) {
           id="note"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Optional thoughts..."
+          placeholder={
+            status === 'want' ? 'Why do you want to?' : 'Optional thoughts...'
+          }
         />
       </div>
 
-      <Button
-        type="submit"
-        disabled={createRating.isPending}
-        className="w-full"
-      >
-        {createRating.isPending ? 'Saving...' : 'Add rating'}
+      <Button type="submit" disabled={pending} className="w-full">
+        {pending
+          ? 'Saving...'
+          : existing
+            ? 'Save changes'
+            : status === 'want'
+              ? 'Add to want list'
+              : 'Add rating'}
       </Button>
     </form>
   )
