@@ -7,12 +7,12 @@ import { useAuthStore } from '@/store/authStore'
 import { DatesRoute } from '@/routes/DatesRoute'
 import { GamesRoute } from '@/routes/GamesRoute'
 import { ConnectRoute } from '@/routes/ConnectRoute'
+import { ExploreRoute } from '@/routes/ExploreRoute'
 import { ForgotPasswordRoute } from '@/routes/ForgotPasswordRoute'
 import { HomeRoute } from '@/routes/HomeRoute'
 import { JoinRoute } from '@/routes/JoinRoute'
 import { LoginRoute } from '@/routes/LoginRoute'
 import { ResetPasswordRoute } from '@/routes/ResetPasswordRoute'
-import { ModulesRoute } from '@/routes/ModulesRoute'
 import { ProfileRoute } from '@/routes/ProfileRoute'
 import { QuizRoute } from '@/routes/QuizRoute'
 import { RatingsRoute } from '@/routes/RatingsRoute'
@@ -60,7 +60,7 @@ function App() {
           >
             <Route path="/" element={<HomeRoute />} />
             <Route path="/connect" element={<ConnectRoute />} />
-            <Route path="/modules" element={<ModulesRoute />} />
+            <Route path="/modules" element={<ExploreRoute />} />
             <Route path="/modules/dates" element={<DatesRoute />} />
             <Route path="/modules/quiz" element={<QuizRoute />} />
             <Route path="/modules/ratings" element={<RatingsRoute />} />

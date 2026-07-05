@@ -16,7 +16,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { useDates } from '@/features/dates/hooks/useDates'
-import type { ImportantDate } from '@/features/dates/types'
+import {
+  countdownLabel,
+  daysBetween,
+  findNextUpcoming,
+  parseLocalDate,
+  startOfToday,
+  togetherLabel,
+} from '@/features/dates/lib/dateMath'
 import { useQuizQuestions } from '@/features/quiz/hooks/useQuiz'
 import { useWishlistItems } from '@/features/wishlist/hooks/useWishlist'
 import { useRatings } from '@/features/ratings/hooks/useRatings'
@@ -24,49 +31,6 @@ import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
 import { useCoupleStatus } from '@/features/couple/hooks/useCouple'
 import { profileLabel } from '@/features/profile/api/profileApi'
 import { relationshipStatusLabels } from '@/features/couple/types'
-
-const MS_PER_DAY = 1000 * 60 * 60 * 24
-
-function startOfToday(): Date {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  return d
-}
-
-function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
-
-function nextOccurrence(date: ImportantDate, today: Date): Date {
-  const occurrence = parseLocalDate(date.date)
-  if (date.recurring) {
-    occurrence.setFullYear(today.getFullYear())
-    if (occurrence < today) occurrence.setFullYear(today.getFullYear() + 1)
-  }
-  return occurrence
-}
-
-function daysBetween(from: Date, to: Date): number {
-  return Math.round((to.getTime() - from.getTime()) / MS_PER_DAY)
-}
-
-function countdownLabel(days: number): string {
-  if (days <= 0) return 'Today'
-  if (days === 1) return 'Tomorrow'
-  if (days < 30) return `in ${days} days`
-  if (days < 60) return 'in about a month'
-  return `in ${Math.round(days / 30)} months`
-}
-
-// "412 days" for a young couple; "2 years, 3 months" once it's been a while.
-function togetherLabel(days: number): string {
-  if (days < 365) return `${days} day${days === 1 ? '' : 's'}`
-  const years = Math.floor(days / 365.25)
-  const months = Math.floor((days - years * 365.25) / 30.44)
-  const y = `${years} year${years === 1 ? '' : 's'}`
-  return months > 0 ? `${y}, ${months} month${months === 1 ? '' : 's'}` : y
-}
 
 function StatTile({
   to,
@@ -114,12 +78,7 @@ export function HomeRoute() {
   const status = coupleStatus?.relationshipStatus
 
   const today = startOfToday()
-
-  const upcoming = dates
-    ?.map((d) => ({ date: d, occurrence: nextOccurrence(d, today) }))
-    .filter(({ occurrence }) => occurrence >= today)
-    .sort((a, b) => a.occurrence.getTime() - b.occurrence.getTime())
-  const nextDate = upcoming?.[0]
+  const nextDate = findNextUpcoming(dates, today)
 
   const anniversary = dates?.find(
     (d) => d.recurring && /anniversar/i.test(d.label)

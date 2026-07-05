@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/modules', label: 'Modules', icon: LayoutGrid },
+  { to: '/modules', label: 'Explore', icon: LayoutGrid },
   { to: '/profile', label: 'Profile', icon: User },
 ]
 

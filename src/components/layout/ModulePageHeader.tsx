@@ -14,7 +14,7 @@ export function ModulePageHeader({
       <div className="flex items-center gap-1">
         <Link
           to="/modules"
-          aria-label="Back to modules"
+          aria-label="Back to Explore"
           className="-ml-1.5 rounded-full p-1.5 text-parchment-dim transition-colors hover:text-parchment"
         >
           <ChevronLeft className="h-5 w-5" />
