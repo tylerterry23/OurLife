@@ -3,7 +3,13 @@ import { Wine } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { categoryLabels, type Prompt } from '../types'
 
-export function PromptReveal({ prompt }: { prompt: Prompt }) {
+export function PromptReveal({
+  prompt,
+  turnLabel,
+}: {
+  prompt: Prompt
+  turnLabel: string
+}) {
   return (
     <Card className="border-gold/50 bg-ink-raised">
       <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
@@ -12,7 +18,8 @@ export function PromptReveal({ prompt }: { prompt: Prompt }) {
           {categoryLabels[prompt.category]}
           {prompt.custom && ' · yours'}
         </div>
-        <p className="font-display text-xl text-parchment">{prompt.text}</p>
+        <p className="font-display text-2xl text-parchment">{turnLabel}</p>
+        <p className="text-lg text-parchment/90">{prompt.text}</p>
       </CardContent>
     </Card>
   )

@@ -36,3 +36,17 @@ export const categoryOrder: PromptCategory[] = [
   'trivia',
   'spicy',
 ]
+
+// Whose turn the wheel landed on. "both" covers group prompts ("All
+// players" in the reference) — with just two people that means both of you.
+export type Turn = 'me' | 'partner' | 'both'
+
+// Wheel slice order — six slices so no two identical labels sit next to
+// each other, matching the density of the reference wheel.
+export const turnSliceOrder: Turn[] = ['me', 'partner', 'both', 'me', 'partner', 'both']
+
+export const turnColors: Record<Turn, string> = {
+  me: 'hsl(var(--primary))',
+  partner: 'hsl(var(--accent))',
+  both: 'hsl(var(--muted-foreground))',
+}

@@ -18,6 +18,7 @@ import { QuizRoute } from '@/routes/QuizRoute'
 import { RatingsRoute } from '@/routes/RatingsRoute'
 import { SettingsRoute } from '@/routes/SettingsRoute'
 import { SignupRoute } from '@/routes/SignupRoute'
+import { SpinWheelRoute } from '@/routes/SpinWheelRoute'
 import { WishlistRoute } from '@/routes/WishlistRoute'
 
 const queryClient = new QueryClient()
@@ -65,6 +66,7 @@ function App() {
             <Route path="/modules/ratings" element={<RatingsRoute />} />
             <Route path="/modules/wishlist" element={<WishlistRoute />} />
             <Route path="/modules/games" element={<GamesRoute />} />
+            <Route path="/modules/games/wheel" element={<SpinWheelRoute />} />
             <Route path="/profile" element={<ProfileRoute />} />
             <Route path="/profile/settings" element={<SettingsRoute />} />
           </Route>

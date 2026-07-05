@@ -1,12 +1,15 @@
-import { categoryColors, categoryLabels, categoryOrder } from '../types'
-
-const SLICE_ANGLE = 360 / categoryOrder.length // 90deg for 4 categories
 const SIZE = 260
 const CENTER = SIZE / 2
 const RADIUS = SIZE / 2 - 4
 
+export interface WheelSlice {
+  key: string
+  label: string
+  color: string
+}
+
 // Polar coordinates with 0deg = 12 o'clock, increasing clockwise — matches
-// how the rotation math in GamesRoute reasons about slice angles.
+// how the rotation math in the calling route reasons about slice angles.
 function point(angleDeg: number, radius: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180
   return { x: CENTER + radius * Math.cos(rad), y: CENTER + radius * Math.sin(rad) }
@@ -19,7 +22,19 @@ function slicePath(startAngle: number, endAngle: number): string {
   return `M ${CENTER} ${CENTER} L ${start.x} ${start.y} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end.x} ${end.y} Z`
 }
 
-export function Wheel({ rotation }: { rotation: number }) {
+export function Wheel({
+  slices,
+  rotation,
+  highlightKey,
+}: {
+  slices: WheelSlice[]
+  rotation: number
+  // While set, all slices except this one dim — used for the "landed"
+  // moment right after the spin settles.
+  highlightKey?: string | null
+}) {
+  const sliceAngle = 360 / slices.length
+
   return (
     <div
       className="relative mx-auto overflow-hidden"
@@ -52,19 +67,21 @@ export function Wheel({ rotation }: { rotation: number }) {
           fill="hsl(var(--card))"
           stroke="hsl(var(--border))"
         />
-        {categoryOrder.map((cat, i) => {
-          const start = i * SLICE_ANGLE
-          const end = start + SLICE_ANGLE
-          const mid = start + SLICE_ANGLE / 2
+        {slices.map((slice, i) => {
+          const start = i * sliceAngle
+          const end = start + sliceAngle
+          const mid = start + sliceAngle / 2
           const labelPos = point(mid, RADIUS * 0.62)
+          const dimmed = highlightKey != null && highlightKey !== slice.key
           return (
-            <g key={cat}>
+            <g key={`${slice.key}-${i}`}>
               <path
                 d={slicePath(start, end)}
-                fill={categoryColors[cat]}
-                fillOpacity={0.85}
+                fill={slice.color}
+                fillOpacity={dimmed ? 0.25 : 0.85}
                 stroke="hsl(var(--card))"
                 strokeWidth={2}
+                style={{ transition: 'fill-opacity 0.4s ease' }}
               />
               <text
                 x={labelPos.x}
@@ -72,11 +89,12 @@ export function Wheel({ rotation }: { rotation: number }) {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill="hsl(var(--background))"
-                fontSize={15}
+                fontSize={14}
                 fontWeight={600}
+                opacity={dimmed ? 0.5 : 1}
                 transform={`rotate(${mid}, ${labelPos.x}, ${labelPos.y})`}
               >
-                {categoryLabels[cat]}
+                {slice.label}
               </text>
             </g>
           )
@@ -92,5 +110,3 @@ export function Wheel({ rotation }: { rotation: number }) {
     </div>
   )
 }
-
-export { SLICE_ANGLE }
