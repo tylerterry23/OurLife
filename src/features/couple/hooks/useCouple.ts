@@ -1,25 +1,36 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
+  acceptCoupleRequest,
   acceptInvite,
+  cancelCoupleRequest,
+  declineCoupleRequest,
   declineInvite,
+  findUserByUsername,
+  getIncomingRequests,
   getMyCoupleStatus,
-  getMyInvites,
+  getOutgoingRequests,
   invitePartner,
   leavePartner,
+  sendCoupleRequest,
   setCoupleRelationshipStatus,
 } from '../api/coupleApi'
 import type { RelationshipStatus } from '../types'
 
 const coupleStatusKey = ['couple-status'] as const
-const coupleInvitesKey = ['couple-invites'] as const
+const incomingRequestsKey = ['couple-requests', 'incoming'] as const
+const outgoingRequestsKey = ['couple-requests', 'outgoing'] as const
 
 export function useCoupleStatus() {
   return useQuery({ queryKey: coupleStatusKey, queryFn: getMyCoupleStatus })
 }
 
-export function useMyInvites() {
-  return useQuery({ queryKey: coupleInvitesKey, queryFn: getMyInvites })
+export function useIncomingRequests() {
+  return useQuery({ queryKey: incomingRequestsKey, queryFn: getIncomingRequests })
+}
+
+export function useOutgoingRequests() {
+  return useQuery({ queryKey: outgoingRequestsKey, queryFn: getOutgoingRequests })
 }
 
 // Membership changes ripple into who your partner is and both members'
@@ -28,9 +39,47 @@ function useInvalidateCouple() {
   const queryClient = useQueryClient()
   return () => {
     queryClient.invalidateQueries({ queryKey: coupleStatusKey })
-    queryClient.invalidateQueries({ queryKey: coupleInvitesKey })
+    queryClient.invalidateQueries({ queryKey: ['couple-requests'] })
     queryClient.invalidateQueries({ queryKey: ['couple-profiles'] })
   }
+}
+
+export function useFindUserByUsername() {
+  return useMutation({
+    mutationFn: (username: string) => findUserByUsername(username),
+  })
+}
+
+export function useSendCoupleRequest() {
+  const invalidate = useInvalidateCouple()
+  return useMutation({
+    mutationFn: (username: string) => sendCoupleRequest(username),
+    onSuccess: invalidate,
+  })
+}
+
+export function useAcceptCoupleRequest() {
+  const invalidate = useInvalidateCouple()
+  return useMutation({
+    mutationFn: (inviteId: string) => acceptCoupleRequest(inviteId),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDeclineCoupleRequest() {
+  const invalidate = useInvalidateCouple()
+  return useMutation({
+    mutationFn: (inviteId: string) => declineCoupleRequest(inviteId),
+    onSuccess: invalidate,
+  })
+}
+
+export function useCancelCoupleRequest() {
+  const invalidate = useInvalidateCouple()
+  return useMutation({
+    mutationFn: (inviteId: string) => cancelCoupleRequest(inviteId),
+    onSuccess: invalidate,
+  })
 }
 
 export function useInvitePartner() {

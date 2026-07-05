@@ -45,7 +45,8 @@ export type Database = {
           created_at: string
           id: string
           invite_code: string
-          invitee_email: string
+          invitee_email: string | null
+          invitee_user_id: string | null
           inviter_id: string
           responded_at: string | null
           status: string
@@ -55,7 +56,8 @@ export type Database = {
           created_at?: string
           id?: string
           invite_code?: string
-          invitee_email: string
+          invitee_email?: string | null
+          invitee_user_id?: string | null
           inviter_id: string
           responded_at?: string | null
           status?: string
@@ -65,7 +67,8 @@ export type Database = {
           created_at?: string
           id?: string
           invite_code?: string
-          invitee_email?: string
+          invitee_email?: string | null
+          invitee_user_id?: string | null
           inviter_id?: string
           responded_at?: string | null
           status?: string
@@ -373,6 +376,14 @@ export type Database = {
         Args: { p_invite_code: string }
         Returns: undefined
       }
+      accept_couple_request: {
+        Args: { p_invite_id: string }
+        Returns: undefined
+      }
+      cancel_couple_request: {
+        Args: { p_invite_id: string }
+        Returns: undefined
+      }
       create_couple_and_invite: {
         Args: { p_invitee_email: string }
         Returns: {
@@ -384,10 +395,57 @@ export type Database = {
         Args: { p_invite_code: string }
         Returns: undefined
       }
+      decline_couple_request: {
+        Args: { p_invite_id: string }
+        Returns: undefined
+      }
       delete_my_account: { Args: never; Returns: undefined }
+      find_user_by_username: {
+        Args: { p_username: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+          username: string
+        }[]
+      }
+      get_incoming_couple_requests: {
+        Args: never
+        Returns: {
+          created_at: string
+          invite_id: string
+          inviter_avatar_url: string
+          inviter_display_name: string
+          inviter_user_id: string
+          inviter_username: string
+        }[]
+      }
       get_my_couple_id: { Args: never; Returns: string }
+      get_outgoing_couple_requests: {
+        Args: never
+        Returns: {
+          created_at: string
+          invite_code: string
+          invite_id: string
+          invitee_email: string
+          target_avatar_url: string
+          target_display_name: string
+          target_user_id: string
+          target_username: string
+        }[]
+      }
       is_username_available: { Args: { p_username: string }; Returns: boolean }
       leave_couple: { Args: never; Returns: undefined }
+      send_couple_request: {
+        Args: { p_username: string }
+        Returns: {
+          invite_id: string
+          target_avatar_url: string
+          target_display_name: string
+          target_user_id: string
+          target_username: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

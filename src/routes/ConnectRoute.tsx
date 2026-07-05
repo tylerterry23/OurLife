@@ -28,8 +28,8 @@ export function ConnectRoute() {
       </div>
 
       <p className="text-muted-foreground">
-        OurLife is for two. Invite your partner or enter their code to share a
-        private space for everything you do together.
+        OurLife is for two. Search your partner's username to send them a
+        request, or invite them if they're not on OurLife yet.
       </p>
 
       <PartnerConnect />

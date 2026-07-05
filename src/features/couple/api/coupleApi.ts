@@ -14,11 +14,33 @@ export interface CoupleStatus {
   relationshipStatus: RelationshipStatus | null
 }
 
-export interface CoupleInvite {
-  id: string
+export interface UserSearchResult {
+  userId: string
+  username: string
+  displayName: string | null
+  avatarUrl: string | null
+}
+
+export interface IncomingRequest {
+  inviteId: string
+  fromUserId: string
+  fromUsername: string | null
+  fromDisplayName: string | null
+  fromAvatarUrl: string | null
+  createdAt: string
+}
+
+export interface OutgoingRequest {
+  inviteId: string
   inviteCode: string
-  inviterId: string
-  inviteeEmail: string
+  // Set only for the legacy email/QR path; username-based requests have no
+  // email on file, and email invites have no target profile (recipient
+  // doesn't exist as a user yet).
+  inviteeEmail: string | null
+  toUserId: string | null
+  toUsername: string | null
+  toDisplayName: string | null
+  toAvatarUrl: string | null
   createdAt: string
 }
 
@@ -88,37 +110,107 @@ export async function setCoupleRelationshipStatus(
   if (error) throw error
 }
 
-// couple_invites' RLS returns rows the caller sent OR rows addressed to
-// their email — split by inviter_id to tell the two apart client-side.
-export async function getMyInvites(): Promise<{
-  sent: CoupleInvite[]
-  received: CoupleInvite[]
-}> {
-  if (!isSupabaseConfigured) return { sent: [], received: [] }
+// Exact-match only, by design: prevents anyone from enumerating usernames
+// by probing partial strings. Returns null rather than throwing when
+// nobody matches, since "not found" is an expected, common result here.
+export async function findUserByUsername(
+  username: string
+): Promise<UserSearchResult | null> {
+  if (!isSupabaseConfigured) return null
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { sent: [], received: [] }
-
-  const { data, error } = await supabase
-    .from('couple_invites')
-    .select('id, invite_code, inviter_id, invitee_email, created_at')
-    .eq('status', 'pending')
+  const { data, error } = await supabase.rpc('find_user_by_username', {
+    p_username: username,
+  })
   if (error) throw error
+  const row = data[0]
+  if (!row) return null
+  return {
+    userId: row.user_id,
+    username: row.username,
+    displayName: row.display_name,
+    avatarUrl: row.avatar_url,
+  }
+}
 
-  const invites: CoupleInvite[] = data.map((row) => ({
-    id: row.id,
-    inviteCode: row.invite_code,
-    inviterId: row.inviter_id,
-    inviteeEmail: row.invitee_email,
+export async function sendCoupleRequest(
+  username: string
+): Promise<UserSearchResult & { inviteId: string }> {
+  if (!isSupabaseConfigured) {
+    throw new Error('Connecting isn’t available in demo mode.')
+  }
+
+  const { data, error } = await supabase.rpc('send_couple_request', {
+    p_username: username,
+  })
+  if (error) throw error
+  const row = data[0]
+  clearCoupleCache()
+  return {
+    inviteId: row.invite_id,
+    userId: row.target_user_id,
+    username: row.target_username,
+    displayName: row.target_display_name,
+    avatarUrl: row.target_avatar_url,
+  }
+}
+
+export async function acceptCoupleRequest(inviteId: string): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const { error } = await supabase.rpc('accept_couple_request', {
+    p_invite_id: inviteId,
+  })
+  if (error) throw error
+  clearCoupleCache()
+}
+
+export async function declineCoupleRequest(inviteId: string): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const { error } = await supabase.rpc('decline_couple_request', {
+    p_invite_id: inviteId,
+  })
+  if (error) throw error
+  clearCoupleCache()
+}
+
+export async function cancelCoupleRequest(inviteId: string): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const { error } = await supabase.rpc('cancel_couple_request', {
+    p_invite_id: inviteId,
+  })
+  if (error) throw error
+  clearCoupleCache()
+}
+
+export async function getIncomingRequests(): Promise<IncomingRequest[]> {
+  if (!isSupabaseConfigured) return []
+
+  const { data, error } = await supabase.rpc('get_incoming_couple_requests')
+  if (error) throw error
+  return data.map((row) => ({
+    inviteId: row.invite_id,
+    fromUserId: row.inviter_user_id,
+    fromUsername: row.inviter_username,
+    fromDisplayName: row.inviter_display_name,
+    fromAvatarUrl: row.inviter_avatar_url,
     createdAt: row.created_at,
   }))
+}
 
-  return {
-    sent: invites.filter((invite) => invite.inviterId === user.id),
-    received: invites.filter((invite) => invite.inviterId !== user.id),
-  }
+export async function getOutgoingRequests(): Promise<OutgoingRequest[]> {
+  if (!isSupabaseConfigured) return []
+
+  const { data, error } = await supabase.rpc('get_outgoing_couple_requests')
+  if (error) throw error
+  return data.map((row) => ({
+    inviteId: row.invite_id,
+    inviteCode: row.invite_code,
+    inviteeEmail: row.invitee_email,
+    toUserId: row.target_user_id,
+    toUsername: row.target_username,
+    toDisplayName: row.target_display_name,
+    toAvatarUrl: row.target_avatar_url,
+    createdAt: row.created_at,
+  }))
 }
 
 export async function invitePartner(
