@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type ThemeName = 'ourlife' | 'hotpink' | 'monochrome' | 'ocean' | 'sunset'
+export type ThemeName =
+  | 'ourlife'
+  | 'bloom'
+  | 'graphite'
+  | 'rose'
+  | 'midnight'
+  | 'sage'
 export type ThemeMode = 'light' | 'dark' | 'system'
 
 export const THEME_STORAGE_KEY = 'ourlife-theme'
@@ -15,46 +21,60 @@ export interface ThemeSwatch {
   light: { bg: string; fg: string; primary: string; accent: string }
 }
 
+// Palettes: OurLife & Bloom & Graphite are original; Rosé, Midnight, and
+// Sage adapt Rosé Pine, Tokyo Night, and Everforest. See src/index.css for
+// the full CSS custom-property values behind each.
 export const themes: Record<ThemeName, ThemeSwatch> = {
   ourlife: {
     label: 'OurLife',
-    description: 'The original — wine, gold, and parchment.',
+    description: 'Candlelit wine and antique gold.',
     dark: { bg: '#0f0d12', fg: '#efe7dd', primary: '#8a3b54', accent: '#c9a667' },
     light: { bg: '#faf6ef', fg: '#2b2430', primary: '#8a3b54', accent: '#96702f' },
   },
-  hotpink: {
-    label: 'Hot Pink',
-    description: 'Bold pink with an electric cyan pop.',
-    dark: { bg: '#120a10', fg: '#fbeaf3', primary: '#ff2d78', accent: '#22d3ee' },
-    light: { bg: '#fff5fa', fg: '#2b0f1e', primary: '#e0155f', accent: '#0891b2' },
+  bloom: {
+    label: 'Bloom',
+    description: 'Bold fuchsia and gold on deep plum.',
+    dark: { bg: '#18101a', fg: '#f4e6ef', primary: '#d6417e', accent: '#eab04d' },
+    light: { bg: '#fdf2f8', fg: '#3a1228', primary: '#c41e6a', accent: '#b0791a' },
   },
-  monochrome: {
-    label: 'Monochrome',
-    description: 'Black, gray, and white. Nothing else.',
-    dark: { bg: '#0a0a0a', fg: '#f5f5f5', primary: '#e5e5e5', accent: '#a3a3a3' },
-    light: { bg: '#fafafa', fg: '#171717', primary: '#171717', accent: '#525252' },
+  graphite: {
+    label: 'Graphite',
+    description: 'Warm black, gray, and bone.',
+    dark: { bg: '#121110', fg: '#ece8e3', primary: '#e0dcd6', accent: '#b0a89e' },
+    light: { bg: '#f7f5f2', fg: '#201e1b', primary: '#201e1b', accent: '#8a827a' },
   },
-  ocean: {
-    label: 'Ocean',
-    description: 'Calm teal and blue with a seafoam accent.',
-    dark: { bg: '#0a1420', fg: '#e8f4f8', primary: '#1b7f9e', accent: '#5eead4' },
-    light: { bg: '#f4fafc', fg: '#0d2733', primary: '#0e7490', accent: '#0d9488' },
+  rose: {
+    label: 'Rosé',
+    description: 'Dusky rose and iris — soho minimalist.',
+    dark: { bg: '#191724', fg: '#e0def4', primary: '#eb6f92', accent: '#c4a7e7' },
+    light: { bg: '#faf4ed', fg: '#464261', primary: '#b4637a', accent: '#907aa9' },
   },
-  sunset: {
-    label: 'Sunset',
-    description: 'Warm coral and peach with a rose pop.',
-    dark: { bg: '#1a0f0d', fg: '#fdece3', primary: '#e2572f', accent: '#fb7185' },
-    light: { bg: '#fff8f4', fg: '#3a1a10', primary: '#c8451f', accent: '#be123c' },
+  midnight: {
+    label: 'Midnight',
+    description: 'Deep indigo with soft blue and violet.',
+    dark: { bg: '#1a1b26', fg: '#c0caf5', primary: '#7aa2f7', accent: '#bb9af7' },
+    light: { bg: '#eceef4', fg: '#343b58', primary: '#34548a', accent: '#6c4bb0' },
+  },
+  sage: {
+    label: 'Sage',
+    description: 'Cozy forest green and terracotta.',
+    dark: { bg: '#2d353b', fg: '#d3c6aa', primary: '#a7c080', accent: '#e69875' },
+    light: { bg: '#fdf6e3', fg: '#5c6a72', primary: '#8da101', accent: '#dd6f1e' },
   },
 }
 
 export const themeOrder: ThemeName[] = [
   'ourlife',
-  'hotpink',
-  'monochrome',
-  'ocean',
-  'sunset',
+  'bloom',
+  'graphite',
+  'rose',
+  'midnight',
+  'sage',
 ]
+
+function isThemeName(value: unknown): value is ThemeName {
+  return typeof value === 'string' && value in themes
+}
 
 function resolveMode(mode: ThemeMode): 'light' | 'dark' {
   if (mode === 'system') {
@@ -113,7 +133,12 @@ if (typeof window !== 'undefined') {
 
   // The inline script in index.html already applied attributes before
   // first paint using the raw localStorage value (avoiding a flash); this
-  // re-applies from the now-rehydrated store to stay in sync.
+  // re-applies from the now-rehydrated store to stay in sync. If a stale
+  // theme name from a previous lineup is persisted, fall back to OurLife.
   const initial = useThemeStore.getState()
-  applyTheme(initial.themeName, initial.mode)
+  if (!isThemeName(initial.themeName)) {
+    initial.setThemeName('ourlife')
+  } else {
+    applyTheme(initial.themeName, initial.mode)
+  }
 }
