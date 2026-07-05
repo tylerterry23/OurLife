@@ -19,6 +19,7 @@ function toRating(row: RatingWithScores, myUserId: string): Rating {
     status: (row.status as RatingStatus) ?? 'rated',
     category: row.category as RatingCategory,
     title: row.title,
+    location: row.location,
     myScore: mine?.score ?? null,
     partnerScore: partner?.score ?? null,
     note: row.note,
@@ -27,12 +28,13 @@ function toRating(row: RatingWithScores, myUserId: string): Rating {
 }
 
 function toInsert(
-  payload: Pick<Rating, 'status' | 'category' | 'title' | 'note'>
+  payload: Pick<Rating, 'status' | 'category' | 'title' | 'location' | 'note'>
 ): Omit<RatingInsert, 'couple_id'> {
   return {
     status: payload.status,
     category: payload.category,
     title: payload.title,
+    location: payload.location,
     note: payload.note,
   }
 }
@@ -42,6 +44,7 @@ function toUpdate(payload: Partial<Rating>): RatingUpdate {
   if (payload.status !== undefined) update.status = payload.status
   if (payload.category !== undefined) update.category = payload.category
   if (payload.title !== undefined) update.title = payload.title
+  if (payload.location !== undefined) update.location = payload.location
   if (payload.note !== undefined) update.note = payload.note
   return update
 }
@@ -52,6 +55,7 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
     status: 'rated',
     category: 'movie',
     title: 'Everything Everywhere All at Once',
+    location: null,
     myScore: 9.5,
     partnerScore: 10,
     note: 'Still thinking about the rock scene.',
@@ -62,6 +66,7 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
     status: 'rated',
     category: 'restaurant',
     title: 'Corner ramen spot',
+    location: null,
     myScore: 8,
     partnerScore: 9,
     note: 'Go back for the spicy miso.',
@@ -70,8 +75,20 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
   {
     id: crypto.randomUUID(),
     status: 'rated',
-    category: 'city',
+    category: 'place',
+    title: 'Kyoto',
+    location: 'Japan',
+    myScore: 9,
+    partnerScore: 9.5,
+    note: 'Cherry blossoms were just starting to bloom.',
+    createdAt: new Date('2025-04-05T00:00:00Z').toISOString(),
+  },
+  {
+    id: crypto.randomUUID(),
+    status: 'rated',
+    category: 'place',
     title: 'Portland',
+    location: 'Oregon',
     myScore: 7.5,
     partnerScore: 5,
     note: null,
@@ -82,6 +99,7 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
     status: 'want',
     category: 'movie',
     title: 'Past Lives',
+    location: null,
     myScore: null,
     partnerScore: null,
     note: 'Everyone keeps recommending it.',
@@ -92,10 +110,22 @@ const demoRatings = createDemoCollection<Rating>('ratings', [
     status: 'want',
     category: 'restaurant',
     title: 'That new tapas place downtown',
+    location: null,
     myScore: null,
     partnerScore: null,
     note: null,
     createdAt: new Date('2025-07-01T00:00:00Z').toISOString(),
+  },
+  {
+    id: crypto.randomUUID(),
+    status: 'want',
+    category: 'place',
+    title: 'Iceland ring road',
+    location: 'Iceland',
+    myScore: null,
+    partnerScore: null,
+    note: 'Aim for the northern lights season.',
+    createdAt: new Date('2025-06-01T00:00:00Z').toISOString(),
   },
 ])
 

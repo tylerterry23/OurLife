@@ -156,44 +156,6 @@ export type Database = {
           },
         ]
       }
-      places: {
-        Row: {
-          city: string | null
-          couple_id: string
-          created_at: string
-          id: string
-          name: string
-          notes: string | null
-          status: string
-        }
-        Insert: {
-          city?: string | null
-          couple_id: string
-          created_at?: string
-          id?: string
-          name: string
-          notes?: string | null
-          status: string
-        }
-        Update: {
-          city?: string | null
-          couple_id?: string
-          created_at?: string
-          id?: string
-          name?: string
-          notes?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "places_couple_id_fkey"
-            columns: ["couple_id"]
-            isOneToOne: false
-            referencedRelation: "couples"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -291,6 +253,7 @@ export type Database = {
           couple_id: string
           created_at: string
           id: string
+          location: string | null
           note: string | null
           status: string
           title: string
@@ -300,6 +263,7 @@ export type Database = {
           couple_id: string
           created_at?: string
           id?: string
+          location?: string | null
           note?: string | null
           status?: string
           title: string
@@ -309,6 +273,7 @@ export type Database = {
           couple_id?: string
           created_at?: string
           id?: string
+          location?: string | null
           note?: string | null
           status?: string
           title?: string

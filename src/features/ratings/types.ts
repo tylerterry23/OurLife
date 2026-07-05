@@ -1,4 +1,9 @@
-export type RatingCategory = 'movie' | 'show' | 'restaurant' | 'city' | 'book'
+export type RatingCategory =
+  | 'movie'
+  | 'show'
+  | 'restaurant'
+  | 'place'
+  | 'book'
 
 export type RatingStatus = 'want' | 'rated'
 
@@ -7,6 +12,8 @@ export interface Rating {
   status: RatingStatus
   category: RatingCategory
   title: string
+  // Optional context: a restaurant's city, a place's region, etc.
+  location: string | null
   myScore: number | null
   partnerScore: number | null
   note: string | null
@@ -17,7 +24,7 @@ export const categoryLabels: Record<RatingCategory, string> = {
   movie: 'Movie',
   show: 'Show',
   restaurant: 'Restaurant',
-  city: 'City',
+  place: 'Place',
   book: 'Book',
 }
 
@@ -25,16 +32,20 @@ export const categoryOrder: RatingCategory[] = [
   'movie',
   'show',
   'restaurant',
-  'city',
+  'place',
   'book',
 ]
+
+// Categories where a location adds real context, so the form only shows
+// the field where it's useful.
+export const categoriesWithLocation: RatingCategory[] = ['restaurant', 'place']
 
 // The verb that fits each category for a not-yet-rated ("want") item.
 export const wantVerb: Record<RatingCategory, string> = {
   movie: 'to watch',
   show: 'to watch',
   restaurant: 'to try',
-  city: 'to visit',
+  place: 'to visit',
   book: 'to read',
 }
 

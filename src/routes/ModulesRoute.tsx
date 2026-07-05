@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import {
   Calendar,
-  Compass,
   Gamepad2,
   Gift,
   Lock,
@@ -27,15 +26,10 @@ const modules = [
     icon: MessageCircleQuestion,
   },
   {
-    to: '/modules/places',
-    label: 'Been & Going',
-    description: 'Places you’ve visited and places you want to.',
-    icon: Compass,
-  },
-  {
     to: '/modules/ratings',
     label: 'Ratings',
-    description: 'Rate movies, shows, restaurants, and cities together.',
+    description:
+      'Rate movies, shows, restaurants, places, and books — and keep a shared want-to list.',
     icon: Star,
   },
   {

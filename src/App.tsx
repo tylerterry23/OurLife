@@ -13,7 +13,6 @@ import { JoinRoute } from '@/routes/JoinRoute'
 import { LoginRoute } from '@/routes/LoginRoute'
 import { ResetPasswordRoute } from '@/routes/ResetPasswordRoute'
 import { ModulesRoute } from '@/routes/ModulesRoute'
-import { PlacesRoute } from '@/routes/PlacesRoute'
 import { ProfileRoute } from '@/routes/ProfileRoute'
 import { QuizRoute } from '@/routes/QuizRoute'
 import { RatingsRoute } from '@/routes/RatingsRoute'
@@ -63,7 +62,6 @@ function App() {
             <Route path="/modules" element={<ModulesRoute />} />
             <Route path="/modules/dates" element={<DatesRoute />} />
             <Route path="/modules/quiz" element={<QuizRoute />} />
-            <Route path="/modules/places" element={<PlacesRoute />} />
             <Route path="/modules/ratings" element={<RatingsRoute />} />
             <Route path="/modules/wishlist" element={<WishlistRoute />} />
             <Route path="/modules/games" element={<GamesRoute />} />

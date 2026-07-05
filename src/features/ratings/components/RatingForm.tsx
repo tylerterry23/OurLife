@@ -9,6 +9,7 @@ import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
 import { profileLabel } from '@/features/profile/api/profileApi'
 import { useCreateRating, useUpdateRating } from '../hooks/useRatings'
 import {
+  categoriesWithLocation,
   categoryLabels,
   categoryOrder,
   type Rating,
@@ -41,6 +42,7 @@ export function RatingForm({ existing, defaultStatus, onDone }: RatingFormProps)
     existing?.category ?? 'movie'
   )
   const [title, setTitle] = useState(existing?.title ?? '')
+  const [location, setLocation] = useState(existing?.location ?? '')
   const [myScore, setMyScore] = useState(
     existing?.myScore != null ? String(existing.myScore) : ''
   )
@@ -57,6 +59,9 @@ export function RatingForm({ existing, defaultStatus, onDone }: RatingFormProps)
       status,
       category,
       title: title.trim(),
+      location: categoriesWithLocation.includes(category)
+        ? location.trim() || null
+        : null,
       note: note.trim() || null,
       myScore: status === 'rated' && myScore ? Number(myScore) : null,
       partnerScore:
@@ -113,10 +118,26 @@ export function RatingForm({ existing, defaultStatus, onDone }: RatingFormProps)
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Past Lives"
+          placeholder={
+            category === 'place' ? 'e.g. Kyoto' : 'e.g. Past Lives'
+          }
           required
         />
       </div>
+
+      {categoriesWithLocation.includes(category) && (
+        <div className="space-y-2">
+          <Label htmlFor="location">
+            {category === 'place' ? 'Region / country' : 'City'}
+          </Label>
+          <Input
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Optional"
+          />
+        </div>
+      )}
 
       {status === 'rated' && (
         <div className="grid grid-cols-2 gap-4">

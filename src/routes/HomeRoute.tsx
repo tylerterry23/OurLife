@@ -20,7 +20,6 @@ import type { ImportantDate } from '@/features/dates/types'
 import { useQuizQuestions } from '@/features/quiz/hooks/useQuiz'
 import { useWishlistItems } from '@/features/wishlist/hooks/useWishlist'
 import { useRatings } from '@/features/ratings/hooks/useRatings'
-import { usePlaces } from '@/features/places/hooks/usePlaces'
 import { useCoupleProfiles } from '@/features/profile/hooks/useProfile'
 import { useCoupleStatus } from '@/features/couple/hooks/useCouple'
 import { profileLabel } from '@/features/profile/api/profileApi'
@@ -95,7 +94,7 @@ function StatTile({
 const quickActions: { to: string; icon: LucideIcon; label: string }[] = [
   { to: '/modules/dates', icon: CalendarHeart, label: 'Date' },
   { to: '/modules/ratings', icon: Star, label: 'Rating' },
-  { to: '/modules/places', icon: Compass, label: 'Place' },
+  { to: '/modules/quiz', icon: MessageCircleQuestion, label: 'Ask' },
   { to: '/modules/wishlist', icon: Gift, label: 'Wish' },
 ]
 
@@ -106,7 +105,6 @@ export function HomeRoute() {
   const { data: questions } = useQuizQuestions()
   const { data: wishlistItems } = useWishlistItems()
   const { data: ratings } = useRatings()
-  const { data: places } = usePlaces()
 
   const meLabel = profileLabel(coupleProfiles?.me, 'You')
   const partnerLabel = coupleProfiles?.partner
@@ -135,8 +133,11 @@ export function HomeRoute() {
   const openQuestions = questions?.filter((q) => !q.answer) ?? []
   const nextQuestion = openQuestions[0]
 
-  const placesVisited = places?.filter((p) => p.status === 'visited').length ?? 0
-  const ratingsCount = ratings?.length ?? 0
+  const placesVisited =
+    ratings?.filter((r) => r.category === 'place' && r.status === 'rated')
+      .length ?? 0
+  const ratingsCount =
+    ratings?.filter((r) => r.status === 'rated').length ?? 0
   const wishesOpen = wishlistItems?.filter((i) => !i.claimed).length ?? 0
   const answeredCount = questions?.filter((q) => q.answer).length ?? 0
 
@@ -264,7 +265,7 @@ export function HomeRoute() {
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile
-            to="/modules/places"
+            to="/modules/ratings"
             icon={Compass}
             value={placesVisited}
             label="places visited"

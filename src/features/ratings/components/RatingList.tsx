@@ -75,6 +75,11 @@ function RatedCard({
               <p className="truncate font-display text-lg text-parchment">
                 {rating.title}
               </p>
+              {rating.location && (
+                <p className="text-xs text-muted-foreground">
+                  {rating.location}
+                </p>
+              )}
             </div>
             <div className="flex shrink-0 gap-0.5">
               <Button
@@ -156,6 +161,11 @@ function WantCard({
             <p className="truncate font-display text-lg text-parchment">
               {rating.title}
             </p>
+            {rating.location && (
+              <p className="text-xs text-muted-foreground">
+                {rating.location}
+              </p>
+            )}
           </div>
           <div className="flex shrink-0 gap-0.5">
             <Button
