@@ -159,6 +159,7 @@ export type Database = {
       important_dates: {
         Row: {
           couple_id: string
+          created_at: string
           date: string
           id: string
           label: string
@@ -166,6 +167,7 @@ export type Database = {
         }
         Insert: {
           couple_id: string
+          created_at?: string
           date: string
           id?: string
           label: string
@@ -173,6 +175,7 @@ export type Database = {
         }
         Update: {
           couple_id?: string
+          created_at?: string
           date?: string
           id?: string
           label?: string

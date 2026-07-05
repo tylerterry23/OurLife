@@ -40,7 +40,7 @@ function toUpdate(payload: Partial<QuizQuestion>): QuizUpdate {
 const demoQuestions = createDemoCollection<QuizQuestion>('quiz_questions', [
   {
     id: crypto.randomUUID(),
-    askedBy: 'Tyler',
+    askedBy: 'You',
     question: "What's a small thing I do that makes your day better?",
     answer: "Making coffee before I'm even out of bed.",
     answeredAt: new Date('2025-05-10T00:00:00Z').toISOString(),
@@ -48,7 +48,7 @@ const demoQuestions = createDemoCollection<QuizQuestion>('quiz_questions', [
   },
   {
     id: crypto.randomUUID(),
-    askedBy: 'Lauren',
+    askedBy: 'Alex',
     question: 'What trip are you most excited to plan next?',
     answer: null,
     answeredAt: null,

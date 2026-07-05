@@ -13,6 +13,7 @@ export interface Profile {
   displayName: string | null
   username: string | null
   avatarUrl: string | null
+  createdAt: string
 }
 
 // Best available human label for a profile: display name, then username,
@@ -31,6 +32,7 @@ function demoMeProfile(): Profile {
     displayName: id.displayName,
     username: id.username,
     avatarUrl: id.avatarUrl,
+    createdAt: id.createdAt,
   }
 }
 
@@ -40,6 +42,7 @@ function demoPartnerProfile(): Profile {
     displayName: DEMO_PARTNER_NAME,
     username: DEMO_PARTNER_NAME.toLowerCase(),
     avatarUrl: null,
+    createdAt: new Date('2025-02-01T00:00:00Z').toISOString(),
   }
 }
 
@@ -58,6 +61,7 @@ function toProfile(row: ProfileRow): Profile {
     displayName: row.display_name,
     username: row.username,
     avatarUrl: row.avatar_url,
+    createdAt: row.created_at,
   }
 }
 
@@ -179,6 +183,20 @@ export async function uploadAvatar(file: File): Promise<string> {
   if (updateError) throw updateError
 
   return publicUrl
+}
+
+export async function removeAvatar(): Promise<void> {
+  if (!isSupabaseConfigured) {
+    writeDemoIdentity({ avatarUrl: null })
+    return
+  }
+
+  const userId = await getMyUserId()
+  const { error } = await supabase
+    .from('profiles')
+    .update({ avatar_url: null, updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+  if (error) throw error
 }
 
 export async function deleteMyAccount(): Promise<void> {

@@ -8,6 +8,7 @@ export interface DemoIdentity {
   username: string
   avatarUrl: string | null
   relationshipStatus: RelationshipStatus
+  createdAt: string
 }
 
 const STORAGE_KEY = 'ourlife-demo-identity'
@@ -17,6 +18,7 @@ const defaults: DemoIdentity = {
   username: 'you',
   avatarUrl: null,
   relationshipStatus: 'dating',
+  createdAt: new Date('2025-03-14T00:00:00Z').toISOString(),
 }
 
 export function readDemoIdentity(): DemoIdentity {

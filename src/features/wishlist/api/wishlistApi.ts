@@ -45,7 +45,7 @@ function toUpdate(payload: Partial<WishlistItem>): WishlistUpdate {
 const demoWishlist = createDemoCollection<WishlistItem>('wishlist_items', [
   {
     id: crypto.randomUUID(),
-    addedBy: 'Lauren',
+    addedBy: 'Alex',
     title: 'Weighted blanket',
     url: null,
     notes: 'Queen size, something neutral.',
@@ -54,7 +54,7 @@ const demoWishlist = createDemoCollection<WishlistItem>('wishlist_items', [
   },
   {
     id: crypto.randomUUID(),
-    addedBy: 'Tyler',
+    addedBy: 'You',
     title: 'Film camera',
     url: null,
     notes: 'Something simple, point and shoot.',

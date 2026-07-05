@@ -1,12 +1,19 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, Heart, ImagePlus, Settings, Upload } from 'lucide-react'
+import { Clock, Heart, ImagePlus, Pencil, Settings } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { timeAgo } from '@/lib/utils'
 import {
   useCoupleStatus,
   useSetRelationshipStatus,
@@ -19,44 +26,45 @@ import {
 import {
   useCoupleProfiles,
   useMyProfile,
+  useRemoveAvatar,
   useUpdateProfile,
   useUploadAvatar,
 } from '@/features/profile/hooks/useProfile'
+import { useRecentActivity } from '@/features/profile/hooks/useRecentActivity'
 import { isUsernameAvailable, profileLabel } from '@/features/profile/api/profileApi'
 
-interface ProfileEditorProps {
+function memberSinceLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+interface EditProfileDialogProps {
   initialDisplayName: string
   initialUsername: string
-  avatarUrl: string | null | undefined
-  partnerLabel: string | null
   inCouple: boolean
   relationshipStatus: RelationshipStatus | null
   coupleId: string | null
 }
 
-function ProfileEditor({
+function EditProfileDialog({
   initialDisplayName,
   initialUsername,
-  avatarUrl,
-  partnerLabel,
   inCouple,
   relationshipStatus,
   coupleId,
-}: ProfileEditorProps) {
+}: EditProfileDialogProps) {
   const updateProfile = useUpdateProfile()
-  const uploadAvatar = useUploadAvatar()
   const setStatus = useSetRelationshipStatus()
 
+  const [open, setOpen] = useState(false)
   const [displayNameInput, setDisplayNameInput] = useState(initialDisplayName)
   const [usernameInput, setUsernameInput] = useState(initialUsername)
   const [statusInput, setStatusInput] = useState<RelationshipStatus>(
     relationshipStatus ?? 'dating'
   )
-  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const displayStatus = relationshipStatus ?? statusInput
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -65,7 +73,6 @@ function ProfileEditor({
 
     const nextUsername = usernameInput.trim()
     try {
-      // Only re-check availability if the username actually changed.
       if (nextUsername && nextUsername !== initialUsername) {
         const available = await isUsernameAvailable(nextUsername)
         if (!available) {
@@ -83,8 +90,7 @@ function ProfileEditor({
         await setStatus.mutateAsync({ coupleId, status: statusInput })
       }
 
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
+      setOpen(false)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Could not save your profile.'
@@ -92,26 +98,147 @@ function ProfileEditor({
     }
   }
 
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (next) {
+          setDisplayNameInput(initialDisplayName)
+          setUsernameInput(initialUsername)
+          setStatusInput(relationshipStatus ?? 'dating')
+          setError(null)
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <Pencil className="h-3.5 w-3.5" />
+          Edit profile
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit profile</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="displayName">Display name</Label>
+            <Input
+              id="displayName"
+              value={displayNameInput}
+              onChange={(e) => setDisplayNameInput(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={usernameInput}
+              onChange={(e) =>
+                setUsernameInput(e.target.value.replace(/\s+/g, '').toLowerCase())
+              }
+            />
+          </div>
+          {inCouple && (
+            <div className="space-y-2">
+              <Label htmlFor="status">Relationship status</Label>
+              <select
+                id="status"
+                value={statusInput}
+                onChange={(e) =>
+                  setStatusInput(e.target.value as RelationshipStatus)
+                }
+                className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {relationshipStatusOptions.map((option) => (
+                  <option key={option} value={option} className="bg-card">
+                    {relationshipStatusLabels[option]}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Shared with your partner.
+              </p>
+            </div>
+          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={updateProfile.isPending || setStatus.isPending}
+          >
+            {updateProfile.isPending || setStatus.isPending
+              ? 'Saving...'
+              : 'Save changes'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export function ProfileRoute() {
+  const { data: profile } = useMyProfile()
+  const { data: coupleProfiles } = useCoupleProfiles()
+  const { data: coupleStatus } = useCoupleStatus()
+  const uploadAvatar = useUploadAvatar()
+  const removeAvatar = useRemoveAvatar()
+  const { items: activity, isLoading: activityLoading } = useRecentActivity()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const partnerLabel = coupleProfiles?.partner
+    ? profileLabel(coupleProfiles.partner, 'Partner')
+    : null
+  const displayName = profile?.displayName || 'Unnamed'
+  const inCouple = coupleStatus?.inCouple ?? false
+  const status = coupleStatus?.relationshipStatus
+
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) uploadAvatar.mutate(file)
     e.target.value = ''
   }
 
+  const header = (
+    <div className="flex items-center justify-between">
+      <h1 className="font-display text-3xl font-medium text-parchment">
+        Profile
+      </h1>
+      <Button variant="ghost" size="icon" aria-label="Settings" asChild>
+        <Link to="/profile/settings">
+          <Settings className="h-5 w-5" />
+        </Link>
+      </Button>
+    </div>
+  )
+
+  if (profile === undefined || coupleStatus === undefined) {
+    return (
+      <div className="space-y-6">
+        {header}
+        <p className="text-muted-foreground">Loading profile...</p>
+      </div>
+    )
+  }
+
   return (
-    <>
+    <div className="space-y-6">
+      {header}
+
       <Card>
-        <CardContent className="flex flex-col items-center gap-4 pt-6 text-center">
+        <CardContent className="flex flex-col items-center gap-3 pt-6 text-center">
           <div className="relative">
-            {avatarUrl ? (
+            {profile?.avatarUrl ? (
               <img
-                src={avatarUrl}
+                src={profile.avatarUrl}
                 alt=""
                 className="h-20 w-20 rounded-full object-cover"
               />
             ) : (
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-wine font-display text-3xl text-parchment">
-                {displayNameInput.charAt(0).toUpperCase() || '?'}
+                {displayName.charAt(0).toUpperCase() || '?'}
               </div>
             )}
             <button
@@ -131,18 +258,31 @@ function ProfileEditor({
               onChange={handleAvatarChange}
             />
           </div>
+
+          {profile?.avatarUrl && (
+            <button
+              type="button"
+              onClick={() => removeAvatar.mutate()}
+              disabled={removeAvatar.isPending}
+              className="text-xs text-muted-foreground underline underline-offset-4 hover:text-parchment"
+            >
+              Remove photo
+            </button>
+          )}
+
           <div>
             <p className="font-display text-2xl text-parchment">
-              {displayNameInput || 'Unnamed'}
+              {displayName}
             </p>
             <p className="text-sm text-muted-foreground">
-              @{usernameInput || 'username'}
+              @{profile?.username || 'username'}
             </p>
           </div>
-          {inCouple ? (
+
+          {inCouple && status ? (
             <p className="flex items-center gap-1.5 text-sm text-gold">
               <Heart className="h-4 w-4" />
-              {relationshipStatusLabels[displayStatus]}
+              {relationshipStatusLabels[status]}
               {partnerLabel && ` with ${partnerLabel}`}
             </p>
           ) : (
@@ -150,147 +290,55 @@ function ProfileEditor({
               Not connected with a partner yet.
             </p>
           )}
+
+          {profile?.createdAt && (
+            <p className="text-xs text-muted-foreground">
+              Member since {memberSinceLabel(profile.createdAt)}
+            </p>
+          )}
+
+          <EditProfileDialog
+            initialDisplayName={profile?.displayName ?? ''}
+            initialUsername={profile?.username ?? ''}
+            inCouple={inCouple}
+            relationshipStatus={coupleStatus?.relationshipStatus ?? null}
+            coupleId={coupleStatus?.coupleId ?? null}
+          />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Edit profile</CardTitle>
+        <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+          <Clock className="h-5 w-5 text-gold" />
+          <CardTitle className="text-xl">Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Display name</Label>
-              <Input
-                id="displayName"
-                value={displayNameInput}
-                onChange={(e) => setDisplayNameInput(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={usernameInput}
-                onChange={(e) =>
-                  setUsernameInput(
-                    e.target.value.replace(/\s+/g, '').toLowerCase()
-                  )
-                }
-              />
-            </div>
-            {inCouple && (
-              <div className="space-y-2">
-                <Label htmlFor="status">Relationship status</Label>
-                <select
-                  id="status"
-                  value={statusInput}
-                  onChange={(e) =>
-                    setStatusInput(e.target.value as RelationshipStatus)
-                  }
-                  className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {relationshipStatusOptions.map((option) => (
-                    <option key={option} value={option} className="bg-card">
-                      {relationshipStatusLabels[option]}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  Shared with your partner.
-                </p>
-              </div>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button
-              type="submit"
-              disabled={updateProfile.isPending || setStatus.isPending}
-            >
-              {saved ? 'Saved' : 'Save'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </>
-  )
-}
-
-export function ProfileRoute() {
-  const { data: profile } = useMyProfile()
-  const { data: coupleProfiles } = useCoupleProfiles()
-  const { data: coupleStatus } = useCoupleStatus()
-
-  const partnerLabel = coupleProfiles?.partner
-    ? profileLabel(coupleProfiles.partner, 'Partner')
-    : null
-
-  const header = (
-    <div className="flex items-center justify-between">
-      <h1 className="font-display text-3xl font-medium text-parchment">
-        Profile
-      </h1>
-      <Button variant="ghost" size="icon" aria-label="Settings" asChild>
-        <Link to="/profile/settings">
-          <Settings className="h-5 w-5" />
-        </Link>
-      </Button>
-    </div>
-  )
-
-  // Wait for the profile fetch to settle so the editor's initial local state
-  // reflects loaded data rather than a flash of empty defaults.
-  if (profile === undefined || coupleStatus === undefined) {
-    return (
-      <div className="space-y-6">
-        {header}
-        <p className="text-muted-foreground">Loading profile...</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
-      {header}
-
-      <ProfileEditor
-        key={profile?.userId ?? 'me'}
-        initialDisplayName={profile?.displayName ?? ''}
-        initialUsername={profile?.username ?? ''}
-        avatarUrl={profile?.avatarUrl}
-        partnerLabel={partnerLabel}
-        inCouple={coupleStatus?.inCouple ?? false}
-        relationshipStatus={coupleStatus?.relationshipStatus ?? null}
-        coupleId={coupleStatus?.coupleId ?? null}
-      />
-
-      <Card className="opacity-60">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <div className="flex items-center gap-2">
-            <Upload className="h-5 w-5 text-gold" />
-            <CardTitle className="text-xl">My Uploads</CardTitle>
-          </div>
-          <Badge variant="outline">coming soon</Badge>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Photos and files you've added across OurLife will show up here.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="opacity-60">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-gold" />
-            <CardTitle className="text-xl">Activity</CardTitle>
-          </div>
-          <Badge variant="outline">coming soon</Badge>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            A timeline of what you've added and answered will live here.
-          </p>
+          {activityLoading ? (
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          ) : activity.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nothing yet — start adding dates, ratings, or wishlist items.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {activity.map((item) => (
+                <li key={item.id}>
+                  <Link
+                    to={item.to}
+                    className="flex items-start gap-3 rounded-md transition-colors hover:text-parchment"
+                  >
+                    <item.icon className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                    <span className="min-w-0 flex-1 text-sm text-parchment/90">
+                      {item.text}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {timeAgo(item.createdAt)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>

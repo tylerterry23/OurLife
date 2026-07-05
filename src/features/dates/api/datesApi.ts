@@ -14,10 +14,13 @@ function toImportantDate(row: DateRow): ImportantDate {
     label: row.label,
     date: row.date,
     recurring: row.recurring,
+    createdAt: row.created_at,
   }
 }
 
-function toInsert(payload: Omit<ImportantDate, 'id'>): Omit<DateInsert, 'couple_id'> {
+function toInsert(
+  payload: Omit<ImportantDate, 'id' | 'createdAt'>
+): Omit<DateInsert, 'couple_id'> {
   return {
     label: payload.label,
     date: payload.date,
@@ -39,12 +42,14 @@ const demoDates = createDemoCollection<ImportantDate>('important_dates', [
     label: 'Anniversary',
     date: '2025-09-12',
     recurring: true,
+    createdAt: new Date('2025-03-14T00:00:00Z').toISOString(),
   },
   {
     id: crypto.randomUUID(),
-    label: "Lauren's birthday",
+    label: "Alex's birthday",
     date: '2025-11-03',
     recurring: true,
+    createdAt: new Date('2025-04-02T00:00:00Z').toISOString(),
   },
 ])
 
@@ -76,10 +81,14 @@ export async function getDate(id: string): Promise<ImportantDate> {
 }
 
 export async function createDate(
-  payload: Omit<ImportantDate, 'id'>
+  payload: Omit<ImportantDate, 'id' | 'createdAt'>
 ): Promise<ImportantDate> {
   if (!isSupabaseConfigured) {
-    return demoDates.insert({ ...payload, id: crypto.randomUUID() })
+    return demoDates.insert({
+      ...payload,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    })
   }
 
   const coupleId = await getMyCoupleId()

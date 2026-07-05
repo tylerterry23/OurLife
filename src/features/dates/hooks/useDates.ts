@@ -26,7 +26,8 @@ export function useDate(id: string) {
 export function useCreateDate() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Omit<ImportantDate, 'id'>) => createDate(payload),
+    mutationFn: (payload: Omit<ImportantDate, 'id' | 'createdAt'>) =>
+      createDate(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: datesKey })
     },

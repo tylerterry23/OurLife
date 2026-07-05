@@ -1,18 +1,11 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  Bell,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  Trash2,
-  UserPlus,
-  UserX,
-} from 'lucide-react'
+import { Bell, ChevronLeft, ChevronRight, KeyRound, LogOut, Trash2, UserPlus, UserX } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
 import { ThemePicker } from '@/components/ThemePicker'
 import {
   Dialog,
@@ -47,7 +40,7 @@ function SettingsRow({
   label: string
   onClick?: () => void
   to?: string
-  trailing?: ReactNode
+  trailing?: React.ReactNode
 }) {
   const content = (
     <>
@@ -80,6 +73,7 @@ function SettingsRow({
 
 export function SettingsRoute() {
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const { data: coupleProfiles } = useCoupleProfiles()
   const partnerLabel = profileLabel(coupleProfiles?.partner, 'your partner')
@@ -130,27 +124,65 @@ export function SettingsRoute() {
         </CardContent>
       </Card>
 
-      <Card className="divide-y divide-line overflow-hidden">
-        {inCouple ? (
-          <SettingsRow
-            icon={UserX}
-            label={`Leave partner (${partnerLabel})`}
-            onClick={() => leaveCouple.mutate()}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Account</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <p className="text-xs text-muted-foreground">Signed in as</p>
+            <p className="text-sm text-parchment">
+              {user?.email ?? 'Not signed in'}
+            </p>
+          </div>
+          <ChangePasswordDialog
+            trigger={
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                disabled={!isSupabaseConfigured}
+              >
+                <KeyRound className="h-4 w-4" />
+                Change password
+              </Button>
+            }
           />
-        ) : (
-          <SettingsRow
-            icon={UserPlus}
-            label="Connect a partner"
-            to="/connect"
-          />
-        )}
+          {!isSupabaseConfigured && (
+            <p className="text-xs text-muted-foreground">
+              Unavailable in demo mode.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Partner</CardTitle>
+        </CardHeader>
+        <CardContent className="-mx-2">
+          {inCouple ? (
+            <SettingsRow
+              icon={UserX}
+              label={`Leave partner (${partnerLabel})`}
+              onClick={() => leaveCouple.mutate()}
+            />
+          ) : (
+            <SettingsRow
+              icon={UserPlus}
+              label="Connect a partner"
+              to="/connect"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="divide-y divide-line overflow-hidden">
         <SettingsRow
           icon={Bell}
           label="Notifications"
           trailing={<Badge variant="outline">coming soon</Badge>}
         />
-
         <SettingsRow icon={LogOut} label="Log out" onClick={() => logout()} />
       </Card>
 

@@ -4,6 +4,7 @@ import {
   deleteMyAccount,
   getCoupleProfiles,
   getMyProfile,
+  removeAvatar,
   updateMyProfile,
   uploadAvatar,
 } from '../api/profileApi'
@@ -37,6 +38,11 @@ export function useUpdateProfile() {
 export function useUploadAvatar() {
   const invalidate = useInvalidateProfiles()
   return useMutation({ mutationFn: uploadAvatar, onSuccess: invalidate })
+}
+
+export function useRemoveAvatar() {
+  const invalidate = useInvalidateProfiles()
+  return useMutation({ mutationFn: removeAvatar, onSuccess: invalidate })
 }
 
 export function useDeleteAccount() {
