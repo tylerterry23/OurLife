@@ -3,14 +3,11 @@ import {
   Calendar,
   Gamepad2,
   Gift,
-  Lock,
   MessageCircleQuestion,
   Star,
 } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
 
 const modules = [
   {
@@ -41,9 +38,8 @@ const modules = [
   {
     to: '/modules/games',
     label: 'Games',
-    description: 'Coming soon.',
+    description: 'Spin the wheel — do it, or drink.',
     icon: Gamepad2,
-    locked: true,
   },
 ]
 
@@ -58,44 +54,19 @@ export function ModulesRoute() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {modules.map(({ to, label, description, icon: Icon, locked }) => {
-          const card = (
-            <Card
-              className={cn(
-                'h-full transition-colors',
-                !locked && 'hover:border-wine-bright/60'
-              )}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        {modules.map(({ to, label, description, icon: Icon }) => (
+          <Link key={to} to={to}>
+            <Card className="h-full transition-colors hover:border-wine-bright/60">
+              <CardHeader>
                 <Icon className="h-6 w-6 text-gold" />
-                {locked && (
-                  <Badge variant="outline" className="gap-1">
-                    <Lock className="h-3 w-3" />
-                    coming soon
-                  </Badge>
-                )}
               </CardHeader>
               <CardContent>
                 <CardTitle className="mb-1 text-xl">{label}</CardTitle>
                 <p className="text-sm text-muted-foreground">{description}</p>
               </CardContent>
             </Card>
-          )
-
-          if (locked) {
-            return (
-              <div key={to} className="cursor-not-allowed opacity-60">
-                {card}
-              </div>
-            )
-          }
-
-          return (
-            <Link key={to} to={to}>
-              {card}
-            </Link>
-          )
-        })}
+          </Link>
+        ))}
       </div>
     </div>
   )

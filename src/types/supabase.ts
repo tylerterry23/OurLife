@@ -124,6 +124,38 @@ export type Database = {
         }
         Relationships: []
       }
+      game_prompts: {
+        Row: {
+          category: string
+          couple_id: string
+          created_at: string
+          id: string
+          text: string
+        }
+        Insert: {
+          category: string
+          couple_id: string
+          created_at?: string
+          id?: string
+          text: string
+        }
+        Update: {
+          category?: string
+          couple_id?: string
+          created_at?: string
+          id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_prompts_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       important_dates: {
         Row: {
           couple_id: string
